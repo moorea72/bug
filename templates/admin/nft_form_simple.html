@@ -1,0 +1,153 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="flex items-center mb-6">
+            <a href="{{ url_for('admin_nfts_simple') }}" 
+               class="text-gray-500 hover:text-gray-700 mr-4">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {{ form.hidden_tag() }}
+                
+                <!-- Collection -->
+                <div>
+                    {{ form.collection_id.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.collection_id(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent") }}
+                    {% if form.collection_id.errors %}
+                        {% for error in form.collection_id.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- NFT Name -->
+                <div>
+                    {{ form.name.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.name(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent") }}
+                    {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Image Upload -->
+                <div>
+                    {{ form.image_file.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.image_file(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent") }}
+                    {% if form.image_file.errors %}
+                        {% for error in form.image_file.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-1">Supported formats: JPG, JPEG, PNG, GIF, WEBP</p>
+                    <p class="text-sm text-green-600 mt-1">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Images will be uploaded to ImgBB.com (API: 8f8ec31fd...6da)
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <strong>Note:</strong> After upload, you'll get the direct image URL for display
+                    </p>
+                </div>
+
+                <!-- Price -->
+                <div>
+                    {{ form.price.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                        {{ form.price(class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent") }}
+                    </div>
+                    {% if form.price.errors %}
+                        {% for error in form.price.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Verification -->
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        {{ form.is_verified(class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded") }}
+                        {{ form.is_verified.label(class="text-sm font-medium text-gray-700") }}
+                    </div>
+
+                    <!-- Blue Tick Upload (shown only when verified is checked) -->
+                    <div id="blue-tick-upload" style="display: none;">
+                        {{ form.blue_tick_file.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                        {{ form.blue_tick_file(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent") }}
+                        {% if form.blue_tick_file.errors %}
+                            {% for error in form.blue_tick_file.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        <p class="text-sm text-gray-500 mt-1">Upload a PNG file for the blue tick badge</p>
+                        <p class="text-sm text-green-600 mt-1">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Blue tick will be uploaded to ImgBB.com (API connected)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Active Status -->
+                <div class="flex items-center">
+                    {{ form.is_active(class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded") }}
+                    {{ form.is_active.label(class="text-sm font-medium text-gray-700") }}
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex space-x-4 pt-6">
+                    <button type="submit" id="submitBtn"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>{{ 'Update NFT' if nft else 'Create NFT' }}
+                    </button>
+                    <a href="{{ url_for('admin_nfts_simple') }}" 
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show/hide blue tick upload based on verification checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const verifiedCheckbox = document.getElementById('is_verified');
+    const blueTick = document.getElementById('blue-tick-upload');
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    function toggleBlueTick() {
+        if (verifiedCheckbox.checked) {
+            blueTick.style.display = 'block';
+        } else {
+            blueTick.style.display = 'none';
+        }
+    }
+    
+    // Handle form submission loading
+    form.addEventListener('submit', function(e) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        
+        // Re-enable after 30 seconds in case of issues
+        setTimeout(function() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>{{ "Update NFT" if nft else "Create NFT" }}';
+        }, 30000);
+    });
+    
+    verifiedCheckbox.addEventListener('change', toggleBlueTick);
+    toggleBlueTick(); // Initial state
+});
+</script>
+{% endblock %}

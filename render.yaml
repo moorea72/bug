@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: usdt-staking-platform
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 main:app"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MORALIS_API_KEY
+        sync: false
+      - key: BSCSCAN_API_KEY
+        sync: false
+      - key: WALLET_ADDRESS
+        value: "0xae49d3b4775c0524bd81da704340b5ef5a7416e9"
+    healthCheckPath: /health
+
+databases:
+  - name: staking-platform-db
+    databaseName: staking_platform
+    user: staking_user

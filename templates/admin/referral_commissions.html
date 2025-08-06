@@ -1,0 +1,189 @@
+
+{% extends "admin/base.html" %}
+
+{% block title %}Referral Commissions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-users"></i> Referral Commission System
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- System Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3>${{ "%.2f"|format(system_stats.total_amount_paid) }}</h3>
+                                    <p>Total Paid</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>{{ system_stats.total_commissions }}</h3>
+                                    <p>Total Commissions</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>{{ system_stats.tier_breakdown.tier_1.count }}</h3>
+                                    <p>$7 Commissions</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3>{{ system_stats.tier_breakdown.tier_3.count }}</h3>
+                                    <p>$26 Commissions</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-gem"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Commission Tiers Info -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Commission Tiers (One-time only):</h5>
+                        <ul class="mb-0">
+                            <li><strong>$50 – $199.99 USDT</strong> → Referrer gets <strong>$7 USDT</strong></li>
+                            <li><strong>$200 – $299.99 USDT</strong> → Referrer gets <strong>$15 USDT</strong></li>
+                            <li><strong>$300+ USDT</strong> → Referrer gets <strong>$26 USDT</strong></li>
+                        </ul>
+                    </div>
+
+                    <!-- Filter Form -->
+                    <form method="GET" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" name="user" class="form-control" 
+                                       placeholder="Filter by username" value="{{ user_filter }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Filter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Commissions Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Referrer</th>
+                                    <th>Referred User</th>
+                                    <th>Deposit Amount</th>
+                                    <th>Commission</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for commission in commissions.items %}
+                                <tr>
+                                    <td>{{ commission.id }}</td>
+                                    <td>
+                                        <strong>{{ commission.referrer.username }}</strong>
+                                        <br><small class="text-muted">{{ commission.referrer.email }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ commission.referred_user.username }}</strong>
+                                        <br><small class="text-muted">{{ commission.referred_user.email }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-primary">${{ "%.2f"|format(commission.deposit_amount) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">${{ "%.2f"|format(commission.commission_amount_usdt) }}</span>
+                                    </td>
+                                    <td>{{ commission.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin_user_referral_commissions', user_id=commission.referrer_id) }}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if commissions.pages > 1 %}
+                    <nav aria-label="Commission pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if commissions.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_referral_commissions', page=commissions.prev_num, user=user_filter) }}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in commissions.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != commissions.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin_referral_commissions', page=page_num, user=user_filter) }}">{{ page_num }}</a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if commissions.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_referral_commissions', page=commissions.next_num, user=user_filter) }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh statistics every 30 seconds
+setInterval(function() {
+    fetch('/api/admin/referral-commission-stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update statistics without page reload
+            console.log('Commission stats updated:', data);
+        })
+        .catch(error => console.error('Error updating stats:', error));
+}, 30000);
+</script>
+{% endblock %}

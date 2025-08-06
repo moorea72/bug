@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}USDT Staking Platform{% endblock %}</title>
+
+    <!-- TailwindCSS - Stable CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Optimized CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/acrobatic-loading.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/optimized-performance.css') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Essential JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="{{ url_for('static', filename='js/acrobatic-loading.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main_clean.js') }}"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #E6F3FF 25%, #F8F9FA 50%, #FFE4E1 75%, #FFC0CB 100%);
+            min-height: 100vh;
+            color: #000;
+            overflow-x: hidden;
+        }
+
+        /* Lightweight performance optimizations */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Minimal transitions for speed */
+        .transition-fast {
+            transition: opacity 0.15s ease;
+        }
+
+        /* Remove heavy animations */
+        .fade-in {
+            opacity: 1;
+        }
+
+        /* Gradient heading styles */
+        .gradient-heading {
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #6366F1 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #6366F1 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+        }
+
+        /* Dark text for all content */
+        p, span, div, label, td, th, li, a, .text-white, .text-gray-300, .text-gray-400, .text-gray-500 {
+            color: #000 !important;
+        }
+
+        /* Ensure content is visible */
+        .container, .page-container, main, body > * {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* Fix any white background issues */
+        .bg-white {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* Override any white/light text classes */
+        .text-white, .text-gray-300, .text-gray-400, .text-gray-500, .text-blue-300, .text-pink-300 {
+            color: #000 !important;
+        }
+
+        /* Special cases for nav links */
+        .nav-item {
+            color: #374151 !important;
+        }
+
+        .nav-item:hover {
+            color: #3B82F6 !important;
+        }
+
+        /* Force dark text on all elements */
+        * {
+            color: #000 !important;
+        }
+
+        /* Exact Screenshot Loading Design */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .loading-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            min-width: 160px;
+            max-width: 200px;
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #E5E7EB;
+            border-top: 3px solid #3B82F6;
+            border-radius: 50%;
+            animation: simpleRotate 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loading-text {
+            color: #374151 !important;
+            font-weight: 500;
+            font-size: 16px;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        @keyframes simpleRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Ensure loading overlay is visible */
+        #loadingOverlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            z-index: 9999 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        #loadingOverlay.hidden {
+            display: none !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* But keep headings with gradient */
+        h1, h2, h3, h4, h5, h6 {
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #6366F1 100%) !important;
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            text-fill-color: transparent !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-black">
+    <!-- Premium Acrobatic Loading System will be injected by JavaScript -->
+
+    <!-- Main Content -->
+    <div class="pb-20">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Fixed Bottom Navigation -->
+    {% if current_user.is_authenticated %}
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 border-t border-gray-200 z-50">
+        <div class="flex justify-around items-center py-3 px-4">
+            <a href="{{ url_for('home') }}" class="nav-item flex flex-col items-center space-y-1 text-gray-700" onclick="showLoading('Loading...')">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs">Home</span>
+            </a>
+            <a href="{{ url_for('stake') }}" class="nav-item flex flex-col items-center space-y-1 text-gray-700" onclick="showLoading('Loading...')">
+                <i class="fas fa-coins text-xl"></i>
+                <span class="text-xs">Stake</span>
+            </a>
+            <a href="{{ url_for('nfts') }}" class="nav-item flex flex-col items-center space-y-1 text-gray-700" onclick="showLoading('Loading...')">
+                <i class="fas fa-image text-xl"></i>
+                <span class="text-xs">NFTs</span>
+            </a>
+            <a href="{{ url_for('assets') }}" class="nav-item flex flex-col items-center space-y-1 text-gray-700" onclick="showLoading('Loading...')">
+                <i class="fas fa-wallet text-xl"></i>
+                <span class="text-xs">Assets</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item flex flex-col items-center space-y-1 text-gray-700" onclick="showLoading('Loading...')">
+                <i class="fas fa-user text-xl"></i>
+                <span class="text-xs">Profile</span>
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Floating Support Chat Button -->
+    {% if current_user.is_authenticated %}
+    <div class="fixed bottom-24 right-4 z-50">
+        <button onclick="toggleSupportChat()" id="supportChatBtn" class="support-chat-btn w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+            <i class="fas fa-comments text-white text-xl"></i>
+        </button>
+
+        <!-- Chat Bubble -->
+        <div id="chatBubble" class="absolute bottom-16 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-2 rounded-lg shadow-lg opacity-0 pointer-events-none transition-all duration-300 whitespace-nowrap">
+            <div class="text-sm font-medium">Premium AI Support</div>
+            <div class="text-xs opacity-80">Step-by-step guidance available</div>
+            <div class="absolute bottom-0 right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-600 transform translate-y-full"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages fixed top-4 right-4 z-50">
+                {% for category, message in messages %}
+                    <div class="flash-message bg-gradient-to-r {% if category == 'error' %}from-red-500 to-red-600{% elif category == 'success' %}from-green-500 to-green-600{% else %}from-blue-500 to-blue-600{% endif %} text-white px-6 py-3 rounded-lg shadow-lg mb-2 opacity-0 transform translate-x-full">
+                        <div class="flex items-center justify-between">
+                            <span>{{ message }}</span>
+                            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Premium Loading System Handlers -->
+    <script>
+        // Enhanced loading system for navigation
+        function showLoading(message = 'Loading...') {
+            if (window.simpleLoader) {
+                window.simpleLoader.show(message);
+            }
+        }
+
+        function hideLoading() {
+            if (window.simpleLoader) {
+                window.simpleLoader.hide();
+            }
+        }
+
+        // Auto-hide loading when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loading after page is fully loaded
+            setTimeout(() => {
+                hideLoading();
+            }, 500);
+        });
+
+        // Show loading on all navigation clicks
+        document.addEventListener('click', function(e) {
+            // Check if clicked element is a navigation link
+            const navLink = e.target.closest('a');
+            if (navLink && navLink.href && !navLink.href.includes('#') && !navLink.href.includes('javascript:')) {
+                showLoading('Loading...');
+            }
+        });
+
+        // Notification system
+        function toggleNotifications() {
+            const popup = document.getElementById('notificationPopup');
+            const isVisible = popup.style.display !== 'none';
+
+            if (isVisible) {
+                popup.style.display = 'none';
+                document.body.style.overflow = '';
+            } else {
+                popup.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                loadNotifications();
+            }
+        }
+
+        // Close popup when clicking outside
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('notificationPopup');
+            const notificationBtn = document.querySelector('button[onclick="toggleNotifications()"]');
+
+            if (popup && popup.style.display === 'flex' && 
+                !popup.querySelector('.bg-white').contains(e.target) && 
+                !notificationBtn?.contains(e.target)) {
+                popup.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
+
+        function loadNotifications() {
+            const content = document.getElementById('notificationContent');
+            const badge = document.getElementById('notificationBadge');
+
+            content.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-spinner fa-spin"></i><p class="mt-2">Loading notifications...</p></div>';
+
+            fetch('/api/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.notifications && data.notifications.length === 0) {
+                        content.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-bell-slash text-2xl mb-2"></i><p>No new notifications</p></div>';
+                        badge.style.display = 'none';
+                    } else if (data.success && data.notifications) {
+                        let html = '';
+                        data.notifications.forEach(notification => {
+                            const typeColor = notification.type === 'error' ? 'red' : 
+                                            notification.type === 'success' ? 'green' : 
+                                            notification.type === 'warning' ? 'yellow' : 'blue';
+
+                            html += `
+                                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <i class="${notification.icon} text-${typeColor}-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="font-medium text-gray-900">${notification.title}</h4>
+                                            <p class="text-gray-600 text-sm mt-1">${notification.message}</p>
+                                            <span class="text-xs text-gray-400 mt-2 block">${notification.time}</span>
+                                        </div>
+                                        <button onclick="markNotificationAsRead(${notification.id})" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        content.innerHTML = html;
+                        badge.textContent = data.count || 0;
+                        badge.style.display = (data.count && data.count > 0) ? 'flex' : 'none';
+                    } else {
+                        content.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-bell-slash text-2xl mb-2"></i><p>No notifications available</p></div>';
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    content.innerHTML = '<div class="p-4 text-center text-red-500"><i class="fas fa-exclamation-triangle"></i><p>Error loading notifications</p></div>';
+                });
+        }
+
+        function markNotificationAsRead(notificationId) {
+            fetch(`/api/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    loadNotifications();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        // Enhanced loading system for all clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading on all button clicks and form submissions (except notification bell)
+            document.addEventListener('click', function(e) {
+                const clickedElement = e.target;
+                const isNotificationBell = clickedElement.closest('#notificationBell') || clickedElement.id === 'notificationBell';
+
+                // Skip loading for notification bell
+                if (isNotificationBell) {
+                    return;
+                }
+
+                const isLink = clickedElement.tagName === 'A' || clickedElement.closest('a');
+                const isButton = clickedElement.tagName === 'BUTTON' || clickedElement.closest('button');
+                const isNavigation = clickedElement.closest('.nav-item, .bottom-nav a, .menu-item');
+
+                if (isLink || isNavigation) {
+                    if (window.simpleLoader) {
+                        window.simpleLoader.show('Loading...');
+                    }
+                }
+            });
+
+            // Show loading on form submissions
+            document.addEventListener('submit', function(e) {
+                if (window.simpleLoader) {
+                    window.simpleLoader.show('Processing...');
+                }
+            });
+
+            // Hide loading when page loads
+            window.addEventListener('load', function() {
+                if (window.simpleLoader) {
+                    setTimeout(() => {
+                        window.simpleLoader.hide();
+                    }, 500);
+                }
+            });
+        });
+
+        // Support chat toggle function
+        function toggleSupportChat() {
+            // Redirect to support page
+            window.location.href = '/support';
+        }
+
+        // Load notifications on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('notificationBadge')) {
+                loadNotifications();
+                // Update notifications every 30 seconds
+                setInterval(loadNotifications, 30000);
+            }
+        });
+    </script>
+
+    <!-- Loading CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}">
+
+    <!-- Premium Loading System -->
+    <script src="{{ url_for('static', filename='js/acrobatic-loading.js') }}"></script>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

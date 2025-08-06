@@ -1,0 +1,33 @@
+ADMIN PANEL ACCESS GUIDE
+
+To access the admin panel:
+
+1. Go to: https://your-domain.replit.app/admin
+
+2. Use these credentials:
+   Email: admin@platform.com
+   Password: admin123
+
+3. Admin features include:
+   - User management (view, edit, ban/unban users)
+   - Transaction management (approve deposits/withdrawals)
+   - Coin and staking plan management
+   - Platform settings configuration
+   - Payment address management
+   - Content management
+   - Support message management
+   - Activity log monitoring
+
+4. Admin routes:
+   /admin - Main dashboard
+   /admin/users - User management
+   /admin/deposits - Deposit management
+   /admin/withdrawals - Withdrawal management
+   /admin/coins - Coin management
+   /admin/plans - Staking plan management
+   /admin/settings - Platform settings
+   /admin/addresses - Payment addresses
+   /admin/content - Content management
+   /admin/support - Support messages
+
+Note: The admin user is automatically created when you first run the application.

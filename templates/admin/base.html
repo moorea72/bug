@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content=""">
+    <title>{% block title %}Admin Panel - USDT Staking Platform{% endblock %}</title>
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #E6F3FF 25%, #F8F9FA 50%, #FFE4E1 75%, #FFC0CB 100%) !important;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #000 !important;
+        }
+        .admin-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        }
+        .sidebar-active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* Text colors for light background */
+        .text-white {
+            color: #000 !important;
+        }
+
+        nav, .sidebar {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        nav .text-white, .sidebar .text-white, nav span, .sidebar a {
+            color: #000 !important;
+        }
+    </style>
+</head>
+<body class="text-black min-h-screen">
+
+    <!-- Admin Navigation -->
+    <nav class="bg-white bg-opacity-90 backdrop-blur-sm border-b border-gray-300 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white text-lg"></i>
+                </div>
+                <h1 class="text-xl font-bold text-black">Admin Panel</h1>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('admin_salary_requests') }}" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-2 rounded-lg text-sm text-white transition-all transform hover:scale-105">
+                    <i class="fas fa-dollar-sign mr-2"></i>Salary Requests
+                </a>
+                <span class="text-sm text-black opacity-80">{{ current_user.username }}</span>
+                <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm text-white transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white bg-opacity-90 backdrop-blur-sm border-r border-gray-300">
+            <div class="p-6">
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-users mr-3"></i>Users
+                    </a>
+                    <a href="{{ url_for('admin_coins') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-coins mr-3"></i>Coins
+                    </a>
+                    <a href="{{ url_for('admin_coin_return_rates') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-percentage mr-3"></i>Return Rates
+                    </a>
+                    <a href="{{ url_for('admin_plans') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-chart-line mr-3"></i>Staking Plans
+                    </a>
+                    <a href="{{ url_for('admin_transactions') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-exchange-alt mr-3"></i>Transactions
+                    </a>
+                    <a href="{{ url_for('admin_transactions') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-arrow-down mr-3"></i>Deposits
+                    </a>
+                    <a href="{{ url_for('admin_withdrawals') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-arrow-up mr-3"></i>Withdrawals
+                    </a>
+                    <!-- Salary Management Section -->
+                    <div class="bg-gradient-to-r from-green-100 to-blue-100 p-4 rounded-lg mb-4 mt-4">
+                        <h3 class="text-sm font-bold text-gray-800 mb-3">💰 Salary Management</h3>
+                        <div class="space-y-2">
+                            <a href="{{ url_for('admin_salary_requests') }}" class="block w-full text-left p-3 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors">
+                                <i class="fas fa-clipboard-check mr-3"></i>Salary Requests
+                                <span class="ml-2 bg-white text-green-600 text-xs px-2 py-1 rounded-full font-bold">APPROVE</span>
+                            </a>
+                            <a href="{{ url_for('admin_salary_dashboard') }}" class="block w-full text-left p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors">
+                                <i class="fas fa-chart-bar mr-3"></i>Salary Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_nfts_enhanced') }}" class="block w-full text-left p-3 rounded-lg hover:bg-blue-100 transition-colors text-black">
+                        <i class="fas fa-images mr-3"></i>NFT Management
+                    </a>
+                    <a href="{{ url_for('support_responses.admin_support_responses') }}" class="block w-full text-left p-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors">
+                        <i class="fas fa-robot mr-3"></i>Support Responses
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Floating Salary Management Button -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <div class="relative group">
+            <button onclick="toggleSalaryMenu()" class="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white p-4 rounded-full shadow-lg transform hover:scale-110 transition-all duration-200">
+                <i class="fas fa-dollar-sign text-xl"></i>
+            </button>
+            
+            <!-- Floating Menu -->
+            <div id="salaryFloatingMenu" class="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl border border-gray-200 min-w-48 hidden">
+                <a href="{{ url_for('admin_salary_requests') }}" class="block px-4 py-3 text-black hover:bg-green-50 rounded-t-lg">
+                    <i class="fas fa-clipboard-check mr-2 text-green-500"></i>Salary Requests
+                </a>
+                <a href="{{ url_for('admin_salary_dashboard') }}" class="block px-4 py-3 text-black hover:bg-blue-50 rounded-b-lg">
+                    <i class="fas fa-chart-bar mr-2 text-blue-500"></i>Salary Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add active state to current page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar a');
+
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('sidebar-active');
+                }
+            });
+        });
+
+        // Floating salary menu functionality
+        function toggleSalaryMenu() {
+            const menu = document.getElementById('salaryFloatingMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('salaryFloatingMenu');
+            const button = event.target.closest('button');
+            
+            if (!button || button.onclick !== toggleSalaryMenu) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

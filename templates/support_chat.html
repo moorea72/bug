@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- Header -->
+    <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-comments text-white text-xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-black mb-2">Advanced Support Chat</h1>
+        <p class="text-gray-700">Get detailed account information and comprehensive support</p>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="glass-card rounded-xl shadow-xl overflow-hidden max-w-2xl mx-auto">
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-headset text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold">Support Team</h3>
+                        <p class="text-xs opacity-90">Usually responds instantly</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span class="text-xs">Online</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="h-96 overflow-y-auto p-4 space-y-4 bg-white">
+            <!-- Welcome Message -->
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-headset text-white text-sm"></i>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                    <p class="text-sm text-black">Hi {{ current_user.username }}! 👋 Welcome to Advanced Support! I have access to your complete account information and can provide detailed reports about your stakes, deposits, withdrawals, and account history. How can I help you today?</p>
+                    <p class="text-xs text-gray-500 mt-1">Just now</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                    <p class="text-sm text-black mb-2">Quick actions:</p>
+                    <div class="space-y-1">
+                        <button onclick="sendQuickMessage('stake details')" class="block w-full text-left text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                            📈 Complete Stake Details
+                        </button>
+                        <button onclick="sendQuickMessage('deposit details')" class="block w-full text-left text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded">
+                            💳 Full Deposit History
+                        </button>
+                        <button onclick="sendQuickMessage('withdrawal details')" class="block w-full text-left text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                            🏦 Withdrawal History
+                        </button>
+                        <button onclick="sendQuickMessage('account history')" class="block w-full text-left text-xs bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded">
+                            📊 Account History
+                        </button>
+                        <button onclick="sendQuickMessage('balance')" class="block w-full text-left text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 px-2 py-1 rounded">
+                            💰 Balance Details
+                        </button>
+                        <button onclick="sendQuickMessage('referral')" class="block w-full text-left text-xs bg-orange-100 hover:bg-orange-200 text-orange-800 px-2 py-1 rounded">
+                            👥 Referral Program
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="border-t border-gray-200 p-4">
+            <div class="flex items-center space-x-3">
+                <div class="flex-1 relative">
+                    <input 
+                        type="text" 
+                        id="messageInput"
+                        placeholder="Type your message..."
+                        class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onkeypress="handleKeyPress(event)"
+                    >
+                </div>
+                <button 
+                    onclick="sendMessage()"
+                    class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+                >
+                    <i class="fas fa-paper-plane text-white text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="hidden px-4 pb-2">
+            <div class="flex items-center space-x-2 text-gray-500">
+                <div class="flex space-x-1">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+                <span class="text-sm">Support team is typing...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Help -->
+    <div class="mt-6 grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div class="glass-card p-4 rounded-xl">
+            <h3 class="font-semibold text-black mb-2">
+                <i class="fas fa-clock text-blue-500 mr-2"></i>Response Time
+            </h3>
+            <p class="text-sm text-gray-700">Average response time: <span class="font-semibold text-green-600">30 seconds</span></p>
+        </div>
+        <div class="glass-card p-4 rounded-xl">
+            <h3 class="font-semibold text-black mb-2">
+                <i class="fas fa-users text-purple-500 mr-2"></i>Support Status
+            </h3>
+            <p class="text-sm text-gray-700">Team: <span class="font-semibold text-green-600">Online 24/7</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+let messageCount = 0;
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        addUserMessage(message);
+        input.value = '';
+        showTypingIndicator();
+        
+        // Simulate admin response
+        setTimeout(() => {
+            hideTypingIndicator();
+            addSupportMessage(generateResponse(message));
+        }, 1000 + Math.random() * 2000);
+    }
+}
+
+function sendQuickMessage(message) {
+    addUserMessage(message);
+    showTypingIndicator();
+    
+    setTimeout(() => {
+        hideTypingIndicator();
+        addSupportMessage(generateResponse(message));
+    }, 1000 + Math.random() * 2000);
+}
+
+function addUserMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start space-x-3 justify-end';
+    
+    messageDiv.innerHTML = `
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-3 max-w-xs">
+            <p class="text-sm">${message}</p>
+            <p class="text-xs opacity-75 mt-1">Just now</p>
+        </div>
+        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-user text-gray-600 text-sm"></i>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function addSupportMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start space-x-3';
+    
+    // Format the message with proper line breaks and styling
+    const formattedMessage = message
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/•/g, '&bull;')
+        .replace(/✅/g, '<span class="text-green-600">✅</span>')
+        .replace(/\$/g, '<span class="text-green-600 font-semibold">$</span>')
+        .replace(/(\d+(?:\.\d+)?%)/g, '<span class="text-blue-600 font-semibold">$1</span>');
+    
+    messageDiv.innerHTML = `
+        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-headset text-white text-sm"></i>
+        </div>
+        <div class="bg-gray-100 rounded-lg p-3 max-w-lg">
+            <div class="text-sm text-black leading-relaxed">${formattedMessage}</div>
+            <p class="text-xs text-gray-500 mt-1">Just now</p>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').classList.remove('hidden');
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').classList.add('hidden');
+}
+
+function generateResponse(userMessage) {
+    const message = userMessage.toLowerCase();
+    
+    // Enhanced Account Information Responses with Full Details
+    if (message.includes('stake details') || message.includes('stake information') || message.includes('stake history')) {
+        let stakeDetails = "📈 **COMPLETE STAKE DETAILS**\\n\\n";
+        {% for stake in current_user.stakes %}
+        stakeDetails += "**Stake #{{ stake.id }}**\\n";
+        stakeDetails += "• Coin: {{ stake.coin.name }} ({{ stake.coin.symbol }})\\n";
+        stakeDetails += "• Amount: ${{ '%.2f'|format(stake.amount) }}\\n";
+        stakeDetails += "• Daily Return: {{ stake.plan.interest_rate }}%\\n";
+        stakeDetails += "• Duration: {{ stake.plan.duration_days }} days\\n";
+        stakeDetails += "• Start Date: {{ stake.start_date.strftime('%Y-%m-%d %H:%M') }}\\n";
+        stakeDetails += "• End Date: {{ stake.end_date.strftime('%Y-%m-%d %H:%M') }}\\n";
+        stakeDetails += "• Current Earnings: ${{ '%.2f'|format(stake.calculate_current_return()) }}\\n";
+        stakeDetails += "• Total Return: ${{ '%.2f'|format(stake.total_return) }}\\n";
+        stakeDetails += "• Status: {{ stake.status|title }}\\n";
+        stakeDetails += "• Days Remaining: {{ stake.days_remaining if not stake.is_mature else 'Completed' }}\\n\\n";
+        {% else %}
+        stakeDetails += "No active stakes found. Start your first stake to begin earning!\\n\\n";
+        {% endfor %}
+        stakeDetails += "**SUMMARY:**\\n";
+        stakeDetails += "Total Active Stakes: {{ current_user.stakes|length }}\\n";
+        stakeDetails += "Total Staked Amount: ${{ '%.2f'|format(current_user.total_staked) }}\\n";
+        stakeDetails += "Total Earnings: ${{ '%.2f'|format(current_user.total_earned) }}";
+        return stakeDetails;
+    }
+    
+    if (message.includes('deposit details') || message.includes('deposit history') || message.includes('deposit information')) {
+        let depositDetails = "💳 **COMPLETE DEPOSIT HISTORY**\\n\\n";
+        {% for deposit in current_user.deposits %}
+        depositDetails += "**Deposit #{{ deposit.id }}**\\n";
+        depositDetails += "• Amount: ${{ '%.2f'|format(deposit.amount) }}\\n";
+        depositDetails += "• Transaction ID: {{ deposit.transaction_id }}\\n";
+        depositDetails += "• Status: {{ deposit.status|title }}\\n";
+        depositDetails += "• Date: {{ deposit.created_at.strftime('%Y-%m-%d %H:%M') }}\\n";
+        {% if deposit.processed_at %}
+        depositDetails += "• Processed: {{ deposit.processed_at.strftime('%Y-%m-%d %H:%M') }}\\n";
+        {% endif %}
+        {% if deposit.blockchain_verified %}
+        depositDetails += "• Blockchain Verified: ✅ Yes\\n";
+        {% endif %}
+        {% if deposit.admin_notes %}
+        depositDetails += "• Admin Notes: {{ deposit.admin_notes }}\\n";
+        {% endif %}
+        depositDetails += "\\n";
+        {% else %}
+        depositDetails += "No deposits found yet. Make your first deposit to get started!\\n\\n";
+        {% endfor %}
+        depositDetails += "**DEPOSIT INSTRUCTIONS:**\\n";
+        depositDetails += "Send USDT (BEP20) to: 0xae49d3b4775c0524bd81da704340b5ef5a7416e9\\n";
+        depositDetails += "Minimum: $10 | Processing: Usually instant";
+        return depositDetails;
+    }
+    
+    if (message.includes('withdrawal details') || message.includes('withdrawal history') || message.includes('withdrawal information')) {
+        let withdrawalDetails = "🏦 **COMPLETE WITHDRAWAL HISTORY**\\n\\n";
+        {% for withdrawal in current_user.withdrawals %}
+        withdrawalDetails += "**Withdrawal #{{ withdrawal.id }}**\\n";
+        withdrawalDetails += "• Amount: ${{ '%.2f'|format(withdrawal.amount) }}\\n";
+        withdrawalDetails += "• Fee: ${{ '%.2f'|format(withdrawal.fee_amount) }}\\n";
+        withdrawalDetails += "• Net Amount: ${{ '%.2f'|format(withdrawal.net_amount) }}\\n";
+        withdrawalDetails += "• Wallet: {{ withdrawal.wallet_address[:20] }}...\\n";
+        withdrawalDetails += "• Network: {{ withdrawal.network }}\\n";
+        withdrawalDetails += "• Status: {{ withdrawal.status|title }}\\n";
+        withdrawalDetails += "• Date: {{ withdrawal.created_at.strftime('%Y-%m-%d %H:%M') }}\\n";
+        {% if withdrawal.processed_at %}
+        withdrawalDetails += "• Processed: {{ withdrawal.processed_at.strftime('%Y-%m-%d %H:%M') }}\\n";
+        {% endif %}
+        {% if withdrawal.transaction_hash %}
+        withdrawalDetails += "• TX Hash: {{ withdrawal.transaction_hash }}\\n";
+        {% endif %}
+        {% if withdrawal.admin_notes %}
+        withdrawalDetails += "• Admin Notes: {{ withdrawal.admin_notes }}\\n";
+        {% endif %}
+        withdrawalDetails += "\\n";
+        {% else %}
+        withdrawalDetails += "No withdrawals made yet.\\n\\n";
+        {% endfor %}
+        withdrawalDetails += "**WITHDRAWAL INFO:**\\n";
+        withdrawalDetails += "Available Balance: ${{ '%.2f'|format(current_user.usdt_balance) }}\\n";
+        {% if current_user.has_two_referrals() %}
+        withdrawalDetails += "Fee: FREE (Premium Member)\\n";
+        {% else %}
+        withdrawalDetails += "Fee: 1% (FREE with 2+ referrals)\\n";
+        {% endif %}
+        withdrawalDetails += "Minimum: $10";
+        return withdrawalDetails;
+    }
+    
+    if (message.includes('account history') || message.includes('full history') || message.includes('all details')) {
+        let fullHistory = "📊 **COMPLETE ACCOUNT HISTORY**\\n\\n";
+        fullHistory += "**ACCOUNT INFO:**\\n";
+        fullHistory += "• Username: {{ current_user.username }}\\n";
+        fullHistory += "• Email: {{ current_user.email }}\\n";
+        fullHistory += "• Phone: {{ current_user.phone_number }}\\n";
+        fullHistory += "• Member Since: {{ current_user.created_at.strftime('%B %d, %Y') }}\\n";
+        fullHistory += "• Referral Code: {{ current_user.referral_code }}\\n";
+        fullHistory += "• Referrals: {{ current_user.get_referral_count() }}\\n";
+        {% if current_user.has_two_referrals() %}
+        fullHistory += "• Status: Premium Member ✨\\n\\n";
+        {% else %}
+        fullHistory += "• Status: Standard Member\\n\\n";
+        {% endif %}
+        
+        fullHistory += "**FINANCIAL SUMMARY:**\\n";
+        fullHistory += "• Current Balance: ${{ '%.2f'|format(current_user.usdt_balance) }}\\n";
+        fullHistory += "• Total Staked: ${{ '%.2f'|format(current_user.total_staked) }}\\n";
+        fullHistory += "• Total Earned: ${{ '%.2f'|format(current_user.total_earned) }}\\n";
+        fullHistory += "• Referral Bonus: ${{ '%.2f'|format(current_user.referral_bonus) }}\\n";
+        fullHistory += "• Active Stakes: {{ current_user.stakes|length }}\\n";
+        fullHistory += "• Total Deposits: {{ current_user.deposits|length }}\\n";
+        fullHistory += "• Total Withdrawals: {{ current_user.withdrawals|length }}\\n\\n";
+        
+        {% if current_user.get_monthly_salary() > 0 %}
+        fullHistory += "**MONTHLY SALARY:**\\n";
+        fullHistory += "• Salary: ${{ current_user.get_monthly_salary() }}/month\\n";
+        fullHistory += "• Based on {{ current_user.get_active_referrals_count() }} active referrals\\n\\n";
+        {% endif %}
+        
+        fullHistory += "Need specific details about stakes, deposits, or withdrawals? Just ask!";
+        return fullHistory;
+    }
+    
+    // Enhanced specific queries
+    if (message.includes('balance') || message.includes('wallet')) {
+        return "💰 **ACCOUNT BALANCE DETAILS**\\n\\nCurrent Balance: ${{ '%.2f'|format(current_user.usdt_balance) }}\\nTotal Staked: ${{ '%.2f'|format(current_user.total_staked) }}\\nTotal Earned: ${{ '%.2f'|format(current_user.total_earned) }}\\nReferral Bonus: ${{ '%.2f'|format(current_user.referral_bonus) }}\\n\\nAvailable for withdrawal: ${{ '%.2f'|format(current_user.usdt_balance) }}\\nMinimum withdrawal: $10\\n{% if current_user.has_two_referrals() %}Withdrawal fee: FREE (Premium){% else %}Withdrawal fee: 1%{% endif %}";
+    }
+    
+    if (message.includes('referral') || message.includes('refer')) {
+        let referralInfo = "👥 **REFERRAL PROGRAM DETAILS**\\n\\n";
+        referralInfo += "Your Referral Code: {{ current_user.referral_code }}\\n";
+        referralInfo += "Total Referrals: {{ current_user.get_referral_count() }}\\n";
+        referralInfo += "Active Referrals: {{ current_user.get_active_referrals_count() }} ($100+ deposited)\\n\\n";
+        
+        {% if current_user.get_monthly_salary() > 0 %}
+        referralInfo += "**MONTHLY SALARY: ${{ current_user.get_monthly_salary() }}**\\n";
+        {% endif %}
+        
+        {% if current_user.has_two_referrals() %}
+        referralInfo += "**PREMIUM BENEFITS ACTIVE:**\\n• No withdrawal fees\\n• 2% extra staking income\\n• Priority support\\n\\n";
+        {% else %}
+        referralInfo += "**REFER 2 FRIENDS TO UNLOCK:**\\n• No withdrawal fees\\n• 2% extra staking income\\n• $20 bonus\\n\\n";
+        {% endif %}
+        
+        referralInfo += "**SALARY TIERS:**\\n• 6+ active referrals: $50/month\\n• 13+ active referrals: $110/month\\n• 25+ active referrals: $250/month";
+        return referralInfo;
+    }
+    
+    if (message.includes('stake') || message.includes('staking')) {
+        let stakeInfo = "📈 **STAKING OVERVIEW**\\n\\n";
+        stakeInfo += "Active Stakes: {{ current_user.stakes|length }}\\n";
+        stakeInfo += "Total Staked: ${{ '%.2f'|format(current_user.total_staked) }}\\n";
+        stakeInfo += "Current Earnings: ${{ '%.2f'|format(current_user.total_earned) }}\\n\\n";
+        stakeInfo += "**AVAILABLE COINS:**\\n";
+        stakeInfo += "• USDT: Min $10\\n• BTC: Min $250\\n• ETH: Min $170\\n• LTC: Min $130\\n• BNB: Min $90\\n\\n";
+        stakeInfo += "**DURATIONS:** 7, 15, 30, 90, 120, 180 days\\n";
+        stakeInfo += "**RETURNS:** Up to 2% daily\\n\\n";
+        stakeInfo += "Say 'stake details' for complete stake information!";
+        return stakeInfo;
+    }
+    
+    if (message.includes('deposit')) {
+        return "💳 **DEPOSIT INFORMATION**\\n\\nWallet Address (BEP20):\\n0xae49d3b4775c0524bd81da704340b5ef5a7416e9\\n\\nSteps:\\n1. Send USDT (BEP20) to above address\\n2. Copy transaction hash\\n3. Submit on Assets page\\n4. Instant verification\\n\\nMinimum: $10\\nNetwork: BEP20 (Binance Smart Chain)\\nProcessing: Usually instant\\n\\nTotal Deposits Made: {{ current_user.deposits|length }}\\n\\nSay 'deposit details' for complete deposit history!";
+    }
+    
+    if (message.includes('withdrawal') || message.includes('withdraw')) {
+        return "🏦 **WITHDRAWAL INFORMATION**\\n\\nAvailable Balance: ${{ '%.2f'|format(current_user.usdt_balance) }}\\nMinimum Withdrawal: $10\\n\\n{% if current_user.has_two_referrals() %}**PREMIUM MEMBER - NO FEES!** ✨\\nYou have 2+ referrals, enjoy free withdrawals!{% else %}**Standard Fee: 1%**\\nGet 2+ referrals for FREE withdrawals!{% endif %}\\n\\nSupported Networks:\\n• BEP20 (Binance Smart Chain)\\n• TRC20 (TRON)\\n\\nProcessing Time: 1-24 hours\\nTotal Withdrawals: {{ current_user.withdrawals|length }}\\n\\nSay 'withdrawal details' for complete history!";
+    }
+    
+    if (message.includes('account') || message.includes('profile')) {
+        return "👤 **ACCOUNT DETAILS**\\n\\nUsername: {{ current_user.username }}\\nEmail: {{ current_user.email }}\\nPhone: {{ current_user.phone_number }}\\nMember Since: {{ current_user.created_at.strftime('%B %Y') }}\\n\\n{% if current_user.has_two_referrals() %}Status: **PREMIUM MEMBER** ✨\\nBenefits Active: No fees + Extra income{% else %}Status: Standard Member\\nRefer 2 friends for Premium benefits!{% endif %}\\n\\nSecurity: Account Active ✅\\nVerification: Phone Verified ✅\\n\\nSay 'account history' for complete details!";
+    }
+    
+    // Category-based responses
+    const responses = {
+        'help': [
+            "🤖 **ADVANCED SUPPORT BOT**\\n\\nI can provide detailed information about:\\n\\n📈 **'stake details'** - Complete stake breakdown\\n💳 **'deposit details'** - Full deposit history\\n🏦 **'withdrawal details'** - Withdrawal records\\n👤 **'account history'** - Complete account info\\n💰 **'balance'** - Financial summary\\n👥 **'referral'** - Referral program details\\n\\nWhat would you like to know?",
+            "💬 **SMART SUPPORT SYSTEM**\\n\\nCurrent Account: ${{ '%.2f'|format(current_user.usdt_balance) }} available\\nActive Stakes: {{ current_user.stakes|length }}\\nReferrals: {{ current_user.get_referral_count() }}\\n\\nAsk me about any specific details - I have access to your complete account information!"
+        ],
+        'default': [
+            "I'm your advanced support assistant with access to all your account details! Current balance: ${{ '%.2f'|format(current_user.usdt_balance) }}, Active stakes: {{ current_user.stakes|length }}. Ask me for 'stake details', 'deposit details', 'withdrawal details', or 'account history' for comprehensive information!",
+            "Hello! I can provide detailed information about your account. You have ${{ '%.2f'|format(current_user.usdt_balance) }} available and {{ current_user.stakes|length }} active stakes. What specific information would you like to know about?",
+            "Hi there! I have access to your complete account data. With {{ current_user.get_referral_count() }} referrals and ${{ '%.2f'|format(current_user.total_staked) }} staked, you're doing great! Ask me for detailed information about any aspect of your account."
+        ]
+    };
+    
+    let category = 'default';
+    if (message.includes('help') || message.includes('support')) category = 'help';
+    
+    const categoryResponses = responses[category];
+    return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
+}
+
+// Auto-scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
+</script>
+{% endblock %}

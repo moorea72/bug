@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-6xl">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-white">NFT Management</h1>
+        <div class="flex space-x-4">
+            <a href="{{ url_for('admin_add_nft') }}" class="glass-button px-4 py-2 rounded-lg text-white">
+                <i class="fas fa-plus mr-2"></i>Add NFT
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="glass-button px-4 py-2 rounded-lg text-white">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="glass-card p-6 rounded-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-600">
+                        <th class="text-left text-white font-semibold py-3 px-2">NFT</th>
+                        <th class="text-left text-white font-semibold py-3 px-2">Collection</th>
+                        <th class="text-left text-white font-semibold py-3 px-2">Price</th>
+                        <th class="text-left text-white font-semibold py-3 px-2">Owner</th>
+                        <th class="text-left text-white font-semibold py-3 px-2">Rarity</th>
+                        <th class="text-left text-white font-semibold py-3 px-2">Status</th>
+                        <th class="text-left text-white font-semibold py-3 px-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nft in nfts %}
+                    <tr class="border-b border-gray-700 hover:bg-gray-800/50">
+                        <td class="py-3 px-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-lg bg-gradient-to-r {{ nft.gradient }} flex items-center justify-center">
+                                    <span class="text-lg">{{ nft.icon }}</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-white font-medium">{{ nft.name }}</span>
+                                        {% if nft.is_verified %}
+                                            <i class="fas fa-check-circle text-blue-400"></i>
+                                        {% endif %}
+                                    </div>
+                                    <span class="text-gray-400 text-sm">#{{ nft.unique_id }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-2 text-gray-300">{{ nft.collection.name }}</td>
+                        <td class="py-3 px-2 text-gray-300">${{ "%.2f"|format(nft.price) }}</td>
+                        <td class="py-3 px-2 text-gray-300">{{ nft.owner_name }}</td>
+                        <td class="py-3 px-2">
+                            {% for i in range(nft.rarity) %}
+                                <i class="fas fa-star text-yellow-400"></i>
+                            {% endfor %}
+                        </td>
+                        <td class="py-3 px-2">
+                            {% if nft.is_active %}
+                                <span class="px-2 py-1 bg-green-600 text-white rounded text-xs">Active</span>
+                            {% else %}
+                                <span class="px-2 py-1 bg-gray-600 text-white rounded text-xs">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-2">
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('admin_edit_nft', nft_id=nft.id) }}" class="text-blue-400 hover:text-blue-300">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('admin_delete_nft', nft_id=nft.id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this NFT?')">
+                                    <button type="submit" class="text-red-400 hover:text-red-300">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+.glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

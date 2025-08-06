@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-white">Support Tickets</h1>
+        <div class="flex space-x-4">
+            <a href="{{ url_for('admin_support_responses') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-robot mr-2"></i>Manage AI Responses
+            </a>
+            <div class="bg-gray-800 px-4 py-2 rounded-lg">
+                <span class="text-gray-400">Total Tickets: </span>
+                <span class="text-white font-bold">{{ stats.total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="glass-card p-4 rounded-xl">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-400 text-sm">Open</p>
+                    <p class="text-white text-2xl font-bold">{{ stats.open }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card p-4 rounded-xl">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-reply text-white text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-400 text-sm">Replied</p>
+                    <p class="text-white text-2xl font-bold">{{ stats.replied }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card p-4 rounded-xl">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-400 text-sm">Urgent</p>
+                    <p class="text-white text-2xl font-bold">{{ stats.urgent }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card p-4 rounded-xl">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-white text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-400 text-sm">Closed</p>
+                    <p class="text-white text-2xl font-bold">{{ stats.closed }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Tickets List -->
+    <div class="glass-card p-6 rounded-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-600">
+                        <th class="text-left text-gray-400 py-3 px-4">User</th>
+                        <th class="text-left text-gray-400 py-3 px-4">Subject</th>
+                        <th class="text-left text-gray-400 py-3 px-4">Priority</th>
+                        <th class="text-left text-gray-400 py-3 px-4">Status</th>
+                        <th class="text-left text-gray-400 py-3 px-4">Created</th>
+                        <th class="text-left text-gray-400 py-3 px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr class="border-b border-gray-700 hover:bg-gray-800">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold">{{ ticket.user.username[0].upper() }}</span>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-white font-medium">{{ ticket.user.username }}</p>
+                                    <p class="text-gray-400 text-sm">{{ ticket.user.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <p class="text-white font-medium">{{ ticket.subject }}</p>
+                            <p class="text-gray-400 text-sm">{{ ticket.problem_type.title() }}</p>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs
+                                {% if ticket.priority == 'urgent' %}bg-red-600 text-red-100
+                                {% elif ticket.priority == 'high' %}bg-orange-600 text-orange-100
+                                {% elif ticket.priority == 'normal' %}bg-blue-600 text-blue-100
+                                {% else %}bg-gray-600 text-gray-100{% endif %}">
+                                {{ ticket.priority.title() }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs
+                                {% if ticket.status == 'open' %}bg-yellow-600 text-yellow-100
+                                {% elif ticket.status == 'replied' %}bg-green-600 text-green-100
+                                {% else %}bg-gray-600 text-gray-100{% endif %}">
+                                {{ ticket.status.title() }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <p class="text-white">{{ ticket.created_at.strftime('%Y-%m-%d') }}</p>
+                            <p class="text-gray-400 text-sm">{{ ticket.created_at.strftime('%H:%M') }}</p>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('admin_ticket_reply', ticket_id=ticket.id) }}" 
+                                   class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                    {% if ticket.admin_reply %}Edit Reply{% else %}Reply{% endif %}
+                                </a>
+                                
+                                {% if ticket.status != 'closed' %}
+                                <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ticket.id) }}" class="inline">
+                                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                                        Close
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

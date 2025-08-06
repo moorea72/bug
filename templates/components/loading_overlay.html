@@ -1,0 +1,90 @@
+
+<!-- Loading Overlay Component -->
+<div id="globalLoadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center opacity-0 invisible transition-all duration-300">
+    <div class="bg-white/90 backdrop-blur-lg rounded-2xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl border border-white/20">
+        <!-- Loading Spinner -->
+        <div class="relative w-16 h-16 mx-auto mb-6">
+            <div class="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+            <div class="absolute inset-2 border-2 border-transparent border-t-blue-400 rounded-full animate-spin animate-reverse"></div>
+        </div>
+        
+        <!-- Loading Text -->
+        <h3 class="text-xl font-bold text-gray-800 mb-2" id="loadingTitle">Loading...</h3>
+        <p class="text-gray-600 text-sm" id="loadingSubtext">Please wait while we process your request</p>
+        
+        <!-- Progress Bar (Optional) -->
+        <div class="w-full bg-gray-200 rounded-full h-2 mt-4 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full animate-pulse"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+}
+
+.animate-reverse {
+    animation: reverse 1s linear infinite;
+}
+
+.loading-overlay-show {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Enhanced backdrop blur for better performance */
+.backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+</style>
+
+<script>
+// Global loading overlay functions
+window.showGlobalLoading = function(title = 'Loading...', subtext = 'Please wait while we process your request') {
+    const overlay = document.getElementById('globalLoadingOverlay');
+    const titleEl = document.getElementById('loadingTitle');
+    const subtextEl = document.getElementById('loadingSubtext');
+    
+    if (titleEl) titleEl.textContent = title;
+    if (subtextEl) subtextEl.textContent = subtext;
+    
+    overlay.classList.add('loading-overlay-show');
+    document.body.style.overflow = 'hidden';
+};
+
+window.hideGlobalLoading = function() {
+    const overlay = document.getElementById('globalLoadingOverlay');
+    overlay.classList.remove('loading-overlay-show');
+    document.body.style.overflow = '';
+};
+
+// Auto-bind to forms and navigation
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind to forms
+    const forms = document.querySelectorAll('form:not(.no-loading)');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            showGlobalLoading('Submitting...', 'Processing your request');
+        });
+    });
+    
+    // Bind to navigation links
+    const navLinks = document.querySelectorAll('a[href^="/admin"]:not(.no-loading)');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!link.href.includes('#') && !link.href.includes('javascript:')) {
+                showGlobalLoading('Loading page...', 'Please wait');
+            }
+        });
+    });
+    
+    // Hide loading when page is fully loaded
+    window.addEventListener('load', function() {
+        setTimeout(hideGlobalLoading, 500);
+    });
+});
+</script>

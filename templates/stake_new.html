@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- Header -->
+    <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold mb-2">Stake & Earn</h1>
+        <p class="text-black text-sm">Choose your crypto and start earning rewards</p>
+        <div class="mt-4 glass-card p-4 rounded-xl">
+            <p class="text-black text-sm">Available Balance</p>
+            <p class="text-2xl font-bold text-green-600">${{ "%.2f"|format(current_user.usdt_balance) }}</p>
+        </div>
+    </header>
+
+    <!-- Crypto Selection Grid -->
+    <div class="mb-6">
+        <h3 class="text-xl font-semibold mb-4">Select Cryptocurrency</h3>
+        <div class="grid grid-cols-2 gap-3">
+            {% for coin in coins %}
+            <div class="crypto-card glass-card p-4 rounded-2xl cursor-pointer hover:scale-105 transition-all duration-300 border-2 border-transparent hover:border-blue-400" 
+                 onclick="selectCoin({{ coin.id }}, '{{ coin.symbol }}', '{{ coin.name }}', {{ coin.min_stake }})">
+                <div class="text-center">
+                    <!-- Crypto Icon -->
+                    {% if coin.logo_url %}
+                    <div class="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden bg-gray-100 border-2 border-white shadow-lg">
+                        <img src="{{ coin.logo_url }}" alt="{{ coin.symbol }}" class="w-full h-full object-cover">
+                    </div>
+                    {% else %}
+                    <div class="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                         style="background: {{ get_crypto_gradient(coin.symbol) }}">
+                        {{ coin.icon_emoji or get_crypto_icon(coin.symbol) }}
+                    </div>
+                    {% endif %}
+                    <h4 class="text-lg font-bold text-black">{{ coin.symbol }}</h4>
+                    <p class="text-sm text-gray-600 mb-2">{{ coin.name }}</p>
+                    <p class="text-xs text-black">Min: ${{ coin.min_stake }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Plan Selection -->
+    <div class="mb-6" id="planSelection" style="display: none;">
+        <h3 class="text-xl font-semibold mb-4">Select Plan for <span id="selectedCoinForPlans"></span></h3>
+        <div class="space-y-3" id="plansContainer">
+            <!-- Plans will be dynamically loaded for selected coin only -->
+        </div>
+    </div>
+
+    <!-- Stake Form -->
+    <div class="mb-6" id="stakeForm" style="display: none;">
+        <h3 class="text-xl font-semibold mb-4">Stake Details</h3>
+        <form method="POST" class="space-y-4">
+            {{ form.hidden_tag() }}
+            
+            <!-- Selected Coin Display -->
+            <div class="glass-card p-4 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" id="selectedCoinIcon">
+                            🔄
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-black" id="selectedCoinName">Select Coin</h4>
+                            <p class="text-sm text-gray-600" id="selectedPlanInfo">Select Plan</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-green-600" id="selectedRate">0%</p>
+                        <p class="text-sm text-gray-600">Daily APY</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="glass-card p-4 rounded-xl">
+                <label class="block text-black text-sm font-medium mb-2">Amount (USDT)</label>
+                {{ form.amount(class="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-black text-lg font-semibold focus:outline-none focus:border-blue-400", placeholder="0.00", oninput="updateCalculations()") }}
+                <div class="flex justify-between mt-2 text-sm">
+                    <span class="text-gray-600">Min: $<span id="minAmount">0</span></span>
+                    <span class="text-gray-600">Max: ${{ "%.2f"|format(current_user.usdt_balance) }}</span>
+                </div>
+            </div>
+
+            <!-- Calculation Preview -->
+            <div class="glass-card p-4 rounded-xl bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200" id="calculationPreview" style="display: none;">
+                <h4 class="text-lg font-semibold text-black mb-3">Earnings Preview</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Principal:</span>
+                        <span class="text-black font-semibold" id="principalAmount">$0.00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Daily Earnings:</span>
+                        <span class="text-green-600 font-semibold" id="dailyEarnings">$0.00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Earnings:</span>
+                        <span class="text-green-600 font-semibold" id="totalEarnings">$0.00</span>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-gray-200">
+                        <span class="text-gray-600">Final Amount:</span>
+                        <span class="text-lg font-bold text-green-600" id="finalAmount">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105">
+                <i class="fas fa-rocket mr-2"></i>Start Staking
+            </button>
+
+            {{ form.coin_id(id="coinIdInput", style="display: none;", value="") }}
+            {{ form.plan_id(id="planIdInput", style="display: none;", value="") }}
+        </form>
+    </div>
+
+    <!-- Active Stakes -->
+    <div class="mb-6" id="activeStakes">
+        <h3 class="text-xl font-semibold mb-4">Your Stake History</h3>
+        <div class="space-y-4">
+            {% for stake in user_stakes %}
+            <div class="stake-item glass-card p-6 rounded-xl">
+                <!-- Header with Coin Info and Status -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                             style="background: {{ get_crypto_gradient(stake.coin.symbol) }}">
+                            {{ get_crypto_icon(stake.coin.symbol) }}
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-black">{{ stake.coin.name }} ({{ stake.coin.symbol }})</h4>
+                            <p class="text-sm text-gray-600">{{ stake.plan.duration_days }} Days Plan • {{ stake.plan.interest_rate }}% Daily</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        {% if stake.status == 'active' %}
+                        <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">Active</span>
+                        {% elif stake.status == 'completed' %}
+                        <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Completed</span>
+                        {% else %}
+                        <span class="px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">Cancelled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Detailed Information Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="bg-blue-50 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-600 uppercase font-medium">Stake Balance</p>
+                        <p class="text-lg font-bold text-blue-600">${{ "%.2f"|format(stake.amount) }}</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-600 uppercase font-medium">Daily Return</p>
+                        <p class="text-lg font-bold text-green-600">${{ "%.2f"|format(stake.amount * stake.plan.interest_rate / 100) }}</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-600 uppercase font-medium">Current Earnings</p>
+                        <p class="text-lg font-bold text-purple-600">${{ "%.2f"|format(stake.calculate_current_return()) }}</p>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-600 uppercase font-medium">Total Return</p>
+                        <p class="text-lg font-bold text-orange-600">${{ "%.2f"|format(stake.total_return) }}</p>
+                    </div>
+                </div>
+                
+                <!-- Dates -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-600 uppercase font-medium">Start Date</p>
+                        <p class="text-sm font-semibold text-black">{{ stake.start_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-600 uppercase font-medium">End Date</p>
+                        <p class="text-sm font-semibold text-black">{{ stake.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                {% if stake.status == 'active' %}
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Progress</span>
+                        <span>{{ stake.days_remaining }} days remaining</span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-3">
+                        {% set progress = ((stake.plan.duration_days - stake.days_remaining) / stake.plan.duration_days) * 100 %}
+                        <div class="bg-gradient-to-r from-green-400 to-blue-400 h-3 rounded-full transition-all duration-300" 
+                             style="width: {{ progress }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                {% if stake.status == 'active' %}
+                <div class="flex space-x-3 mt-4">
+                    <!-- Unlock Fund Button -->
+                    {% if stake.is_mature %}
+                    <button onclick="unlockStake({{ stake.id }})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-unlock mr-2"></i>Unlock Funds
+                    </button>
+                    {% else %}
+                    <button onclick="showTimeRemaining('{{ stake.end_date.strftime('%Y-%m-%d %H:%M') }}')" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 rounded-xl transition-all duration-300">
+                        <i class="fas fa-clock mr-2"></i>Unlock Funds
+                    </button>
+                    {% endif %}
+                    
+                    <!-- Cancel Button -->
+                    <button onclick="showCancelConfirmation({{ stake.id }}, {{ stake.amount }})" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-coins text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No Stakes Yet</h3>
+                <p class="text-gray-500">Start staking to see your investment history here</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Pass coin plans data to JavaScript
+window.coinPlansData = {
+    {% for coin in coins %}
+    {{ coin.id }}: [
+        {% for plan in coin_plans[coin.id] %}
+        {
+            id: {{ plan.id }},
+            duration_days: {{ plan.duration_days }},
+            interest_rate: {{ plan.interest_rate }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+let selectedCoin = null;
+let selectedPlan = null;
+
+function selectCoin(coinId, symbol, name, minStake) {
+    selectedCoin = { id: coinId, symbol: symbol, name: name, minStake: minStake };
+    
+    // Set hidden form field FIRST and log it
+    const coinInput = document.getElementById('coinIdInput');
+    coinInput.value = coinId;
+    console.log('Set coin_id input value to:', coinInput.value);
+    
+    // Update UI
+    document.getElementById('selectedCoinName').textContent = `${symbol} - ${name}`;
+    document.getElementById('selectedCoinIcon').innerHTML = getCryptoIcon(symbol);
+    document.getElementById('selectedCoinIcon').style.background = getCryptoGradient(symbol);
+    document.getElementById('minAmount').textContent = minStake;
+    document.getElementById('selectedCoinForPlans').textContent = symbol;
+    
+    // Load plans for this specific coin only
+    loadCoinPlans(coinId, symbol);
+    
+    // Show plan selection
+    document.getElementById('planSelection').style.display = 'block';
+    document.getElementById('stakeForm').style.display = 'none';
+    
+    // Scroll to plans
+    document.getElementById('planSelection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function loadCoinPlans(coinId, symbol) {
+    // Show loading
+    const plansContainer = document.getElementById('plansContainer');
+    plansContainer.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-gray-500"></i> Loading plans for ' + symbol + '...</div>';
+    
+    // Use coin_plans data passed from template instead of API call
+    const coinPlans = window.coinPlansData[coinId] || [];
+    
+    plansContainer.innerHTML = '';
+    
+    if (coinPlans.length === 0) {
+        plansContainer.innerHTML = `
+            <div class="text-center py-8 glass-card rounded-xl">
+                <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-3"></i>
+                <h4 class="text-lg font-semibold text-black mb-2">No plans available for ${symbol}</h4>
+                <p class="text-gray-600">Admin needs to set return rates for this coin</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Create plan cards for this specific coin
+    coinPlans.forEach(plan => {
+        const planCard = document.createElement('div');
+        planCard.className = 'plan-card glass-card p-4 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 border-2 border-transparent hover:border-purple-400';
+        planCard.onclick = () => selectPlan(plan.id, plan.duration_days, plan.interest_rate);
+        
+        planCard.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <h4 class="text-lg font-bold text-black">${plan.duration_days} Days</h4>
+                    <p class="text-sm text-gray-600">Lock period</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-green-600">${plan.interest_rate}%</p>
+                    <p class="text-sm text-gray-600">Daily APY</p>
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-200">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Total Return:</span>
+                    <span class="text-green-600 font-semibold">${(plan.interest_rate * plan.duration_days).toFixed(1)}%</span>
+                </div>
+            </div>
+        `;
+        
+        plansContainer.appendChild(planCard);
+    });
+}
+
+function selectPlan(planId, duration, rate) {
+    selectedPlan = { id: planId, duration: duration, rate: rate };
+    
+    // Set hidden form field FIRST and log it
+    const planInput = document.getElementById('planIdInput');
+    planInput.value = planId;
+    console.log('Set plan_id input value to:', planInput.value);
+    
+    // Update UI
+    document.getElementById('selectedPlanInfo').textContent = `${duration} days lock period`;
+    document.getElementById('selectedRate').textContent = `${rate}%`;
+    
+    // Show stake form
+    document.getElementById('stakeForm').style.display = 'block';
+    
+    // Scroll to form
+    document.getElementById('stakeForm').scrollIntoView({ behavior: 'smooth' });
+    
+    // Update calculations if amount is entered
+    updateCalculations();
+}
+
+function updateCalculations() {
+    if (!selectedCoin || !selectedPlan) return;
+    
+    const amount = parseFloat(document.querySelector('input[name="amount"]').value) || 0;
+    
+    if (amount > 0) {
+        const dailyEarnings = amount * (selectedPlan.rate / 100);
+        const totalEarnings = dailyEarnings * selectedPlan.duration;
+        const finalAmount = amount + totalEarnings;
+        
+        document.getElementById('principalAmount').textContent = `$${amount.toFixed(2)}`;
+        document.getElementById('dailyEarnings').textContent = `$${dailyEarnings.toFixed(2)}`;
+        document.getElementById('totalEarnings').textContent = `$${totalEarnings.toFixed(2)}`;
+        document.getElementById('finalAmount').textContent = `$${finalAmount.toFixed(2)}`;
+        
+        document.getElementById('calculationPreview').style.display = 'block';
+    } else {
+        document.getElementById('calculationPreview').style.display = 'none';
+    }
+}
+
+// Stake management functions
+function showCancelConfirmation(stakeId, amount) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="cancelModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-md mx-4">
+                <h3 class="text-xl font-bold text-red-600 mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Cancel Stake
+                </h3>
+                <p class="text-gray-700 mb-4">
+                    Are you sure you want to cancel this stake?
+                </p>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                    <p class="text-sm text-yellow-800">
+                        <strong>Warning:</strong> You will only receive your principal amount ($${amount.toFixed(2)}) back. All profits will be lost.
+                    </p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="cancelStake(${stakeId})" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-all duration-300">
+                        Yes, Cancel
+                    </button>
+                    <button onclick="closeCancelModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-3 rounded-lg transition-all duration-300">
+                        No, Keep Stake
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function cancelStake(stakeId) {
+    // Close modal first
+    closeCancelModal();
+    
+    // Redirect to cancel stake route
+    window.location.href = `/cancel_stake/${stakeId}`;
+}
+
+function unlockStake(stakeId) {
+    // Create success modal
+    const modalHTML = `
+        <div id="unlockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-md mx-4 text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h3 class="text-2xl font-bold text-green-600 mb-2">Congratulations!</h3>
+                <p class="text-gray-700 mb-4">Your staking period is complete!</p>
+                <p class="text-sm text-gray-600 mb-6">Click "Unlock Funds" to receive your stake amount plus all earned profits.</p>
+                <div class="flex space-x-3">
+                    <button onclick="withdrawStake(${stakeId})" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition-all duration-300">
+                        Unlock Funds
+                    </button>
+                    <button onclick="closeUnlockModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-3 rounded-lg transition-all duration-300">
+                        Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeUnlockModal() {
+    const modal = document.getElementById('unlockModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function withdrawStake(stakeId) {
+    // Close modal first
+    closeUnlockModal();
+    
+    // Redirect to withdraw stake route
+    window.location.href = `/withdraw_stake/${stakeId}`;
+}
+
+function showTimeRemaining(endDate) {
+    // Parse the end date
+    const end = new Date(endDate);
+    const now = new Date();
+    const diffTime = end - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Create info modal
+    const modalHTML = `
+        <div id="timeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 max-w-md mx-4 text-center">
+                <div class="text-4xl mb-4">⏰</div>
+                <h3 class="text-xl font-bold text-blue-600 mb-2">Stake Still Locked</h3>
+                <p class="text-gray-700 mb-4">Your stake will be unlocked on:</p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p class="text-lg font-semibold text-blue-800">${endDate}</p>
+                    <p class="text-sm text-blue-600">${diffDays} days remaining</p>
+                </div>
+                <button onclick="closeTimeModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300">
+                    OK
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeTimeModal() {
+    const modal = document.getElementById('timeModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function getCryptoIcon(symbol) {
+    const icons = {
+        'BTC': '₿',
+        'ETH': '⧫',
+        'BNB': '🟡',
+        'LTC': 'Ł',
+        'USDT': '₮',
+        'SOL': '◉',
+        'TRX': '⚡',
+        'DOT': '●'
+    };
+    return icons[symbol] || '●';
+}
+
+function getCryptoGradient(symbol) {
+    const gradients = {
+        'BTC': 'linear-gradient(135deg, #f7931a 0%, #ff6b35 100%)',
+        'ETH': 'linear-gradient(135deg, #627eea 0%, #4f46e5 100%)',
+        'BNB': 'linear-gradient(135deg, #f3ba2f 0%, #f59e0b 100%)',
+        'LTC': 'linear-gradient(135deg, #345d9d 0%, #1e40af 100%)',
+        'USDT': 'linear-gradient(135deg, #26a17b 0%, #059669 100%)',
+        'SOL': 'linear-gradient(135deg, #00d4aa 0%, #10b981 100%)',
+        'TRX': 'linear-gradient(135deg, #ff060a 0%, #dc2626 100%)',
+        'DOT': 'linear-gradient(135deg, #e6007a 0%, #ec4899 100%)'
+    };
+    return gradients[symbol] || 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
+}
+</script>
+{% endblock %}

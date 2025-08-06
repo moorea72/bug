@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-6xl">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
+            <p class="text-gray-300">Platform Management & Analytics</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{{ url_for('home') }}" class="glass-button px-4 py-2 rounded-lg text-white">
+                <i class="fas fa-home mr-2"></i>Back to Home
+            </a>
+        </div>
+    </header>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-300 text-sm">Total Users</p>
+                    <p class="text-2xl font-bold text-white">{{ stats.total_users }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-300 text-sm">Total Stakes</p>
+                    <p class="text-2xl font-bold text-white">{{ stats.total_stakes }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-coins text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-300 text-sm">Total Staked</p>
+                    <p class="text-2xl font-bold text-white">${{ "%.2f"|format(stats.total_staked_amount) }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-dollar-sign text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-300 text-sm">Pending Deposits</p>
+                    <p class="text-2xl font-bold text-yellow-400">{{ stats.pending_deposits }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-clock text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-300 text-sm">Pending Withdrawals</p>
+                    <p class="text-2xl font-bold text-red-400">{{ stats.pending_withdrawals }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <a href="{{ url_for('admin_users') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-users text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Manage Users</h3>
+                <p class="text-gray-300 text-sm">View and manage user accounts</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_stakes') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-coins text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">View Stakes</h3>
+                <p class="text-gray-300 text-sm">Monitor all staking activities</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_salary_requests') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-money-bill-wave text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Salary Requests</h3>
+                <p class="text-gray-300 text-sm">Process salary payments</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_transactions') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-exchange-alt text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Transactions</h3>
+                <p class="text-gray-300 text-sm">Handle deposits & withdrawals</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_content') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-file-alt text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Content</h3>
+                <p class="text-gray-300 text-sm">Manage website content</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_support') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-headset text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Support</h3>
+                <p class="text-gray-300 text-sm">Manage user support messages</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_settings') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-cog text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Settings</h3>
+                <p class="text-gray-300 text-sm">Configure platform settings</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_withdrawals') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-money-check-alt text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Withdrawals</h3>
+                <p class="text-gray-300 text-sm">Manage withdrawal requests</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_social_media') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-share-alt text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Social Media</h3>
+                <p class="text-gray-300 text-sm">Manage footer social links</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_nfts_enhanced') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group border-2 border-pink-400">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-images text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">NFT Management</h3>
+                <p class="text-gray-300 text-sm">Upload photos, blue tick PNGs, names & all details</p>
+                <span class="inline-block mt-2 px-2 py-1 bg-pink-500 text-white text-xs rounded-full font-bold">ENHANCED</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Additional Admin Controls -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Advanced Admin System -->
+        <a href="{{ url_for('admin_advanced_coins') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group border-2 border-yellow-400">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-rocket text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Advanced Coins</h3>
+                <p class="text-gray-300 text-sm">Modern & error-free management</p>
+                <span class="inline-block mt-2 px-2 py-1 bg-yellow-500 text-black text-xs rounded-full font-bold">NEW</span>
+            </div>
+        </a>
+        
+        <a href="{{ url_for('admin_coins') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-coins text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Basic Coins</h3>
+                <p class="text-gray-300 text-sm">Simple coin management</p>
+            </div>
+        </a>
+
+        <!-- Advanced Staking Plans -->
+        <a href="{{ url_for('admin_advanced_staking_plans') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group border-2 border-green-400">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Advanced Plans</h3>
+                <p class="text-gray-300 text-sm">Modern staking management</p>
+                <span class="inline-block mt-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full font-bold">NEW</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_coin_return_rates') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-percentage text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Return Rates</h3>
+                <p class="text-gray-300 text-sm">Set individual coin rates</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_plans') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Basic Plans</h3>
+                <p class="text-gray-300 text-sm">Simple staking plans</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_activity') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-history text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Activity Logs</h3>
+                <p class="text-gray-300 text-sm">View system activity</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_change_password') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-key text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Change Password</h3>
+                <p class="text-gray-300 text-sm">Update admin password</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_payment_addresses') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-wallet text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Payment Addresses</h3>
+                <p class="text-gray-300 text-sm">Manage payment wallets</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_ui_customization') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-paint-brush text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">UI Customization</h3>
+                <p class="text-gray-300 text-sm">Customize icons and colors</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_notifications') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-bell text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Notifications</h3>
+                <p class="text-gray-300 text-sm">Manage user notifications</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_nfts') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-violet-500 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-gem text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">NFT Management</h3>
+                <p class="text-gray-300 text-sm">Manage NFT collections</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_notices') }}" class="glass-card p-6 rounded-xl hover:bg-purple-600/30 transition-all group">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-bullhorn text-white text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Platform Notices</h3>
+                <p class="text-gray-300 text-sm">Manage announcements</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+.glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

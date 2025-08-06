@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-7xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-black">Advanced Staking Plans</h1>
+            <p class="text-gray-600">Manage coin-specific staking duration and rates</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{{ url_for('admin_advanced_add_staking_plan') }}" class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-green-600 hover:to-blue-700 transition-all duration-200 shadow-lg">
+                <i class="fas fa-plus mr-2"></i>Add New Plan
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="bg-white text-gray-700 px-4 py-2 rounded-lg border hover:bg-gray-50 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Coin-based Plan Organization -->
+    {% for coin in coins %}
+    <div class="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
+        <div class="bg-gradient-to-r from-{{ loop.index0 % 3 == 0 and 'blue' or (loop.index0 % 3 == 1 and 'green' or 'purple') }}-50 to-{{ loop.index0 % 3 == 0 and 'blue' or (loop.index0 % 3 == 1 and 'green' or 'purple') }}-100 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-3xl mr-4">{{ coin.icon_emoji or '💰' }}</span>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">{{ coin.name }} ({{ coin.symbol }})</h3>
+                        <p class="text-sm text-gray-600">Min Stake: ${{ "%.2f"|format(coin.min_stake) }} | Daily Rate: {{ "%.2f"|format(coin.daily_return_rate) }}%</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin_advanced_add_staking_plan') }}?coin_id={{ coin.id }}" class="bg-white text-gray-700 px-4 py-2 rounded-lg shadow hover:shadow-md transition-all">
+                    <i class="fas fa-plus mr-2"></i>Add Plan
+                </a>
+            </div>
+        </div>
+
+        {% set coin_plans = plans|selectattr('coin_id', 'equalto', coin.id)|list %}
+        {% if coin_plans %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interest Rate</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Return</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for plan in coin_plans %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
+                                <span class="font-medium text-gray-900">{{ plan.duration_days }} days</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-lg font-semibold text-green-600">{{ "%.2f"|format(plan.interest_rate) }}%</span>
+                            <span class="text-sm text-gray-500">/day</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-lg font-semibold text-purple-600">{{ "%.2f"|format(plan.interest_rate * plan.duration_days) }}%</span>
+                            <span class="text-sm text-gray-500">total</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if plan.active %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-pause-circle mr-1"></i>Paused
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ plan.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <a href="{{ url_for('admin_advanced_edit_staking_plan', plan_id=plan.id) }}" 
+                                   class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button onclick="togglePlanStatus({{ plan.id }}, {{ plan.active|lower }})" 
+                                        class="{% if plan.active %}bg-orange-500 hover:bg-orange-600{% else %}bg-green-500 hover:bg-green-600{% endif %} text-white px-3 py-2 rounded-lg text-sm transition-colors">
+                                    {% if plan.active %}
+                                        <i class="fas fa-pause"></i>
+                                    {% else %}
+                                        <i class="fas fa-play"></i>
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-chart-line text-gray-300 text-3xl mb-3"></i>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">No staking plans for {{ coin.symbol }}</h4>
+            <p class="text-gray-500 mb-4">Create staking plans to allow users to stake this coin</p>
+            <a href="{{ url_for('admin_advanced_add_staking_plan') }}?coin_id={{ coin.id }}" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add First Plan
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not coins %}
+    <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+        <i class="fas fa-coins text-gray-300 text-6xl mb-6"></i>
+        <h3 class="text-2xl font-bold text-gray-900 mb-4">No coins available</h3>
+        <p class="text-gray-500 mb-6">You need to add coins before creating staking plans</p>
+        <a href="{{ url_for('admin_advanced_coins') }}" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+            <i class="fas fa-coins mr-2"></i>Manage Coins
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats -->
+<div class="container mx-auto px-4 max-w-7xl">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Coins</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ coins|length }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Plans</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ plans|length }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Active Plans</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ plans|selectattr('active')|list|length }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Avg Daily Rate</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ "%.2f"|format((plans|sum(attribute='interest_rate') / plans|length) if plans else 0) }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePlanStatus(planId, currentStatus) {
+    const action = currentStatus ? 'pause' : 'activate';
+    if (confirm(`Are you sure you want to ${action} this staking plan?`)) {
+        // Show loading
+        const loadingToast = document.createElement('div');
+        loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg z-50';
+        loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        document.body.appendChild(loadingToast);
+        
+        setTimeout(() => {
+            document.body.removeChild(loadingToast);
+            location.reload();
+        }, 1000);
+    }
+}
+</script>
+{% endblock %}

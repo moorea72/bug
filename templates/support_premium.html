@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 hidden">
+    <div class="flex items-center justify-center h-full">
+        <div class="bg-white rounded-full p-4 shadow-lg">
+            <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Support Page -->
+<div class="min-h-screen bg-gradient-to-br from-sky-400 via-pink-300 to-pink-400 relative">
+    <!-- Header -->
+    <div class="bg-white bg-opacity-20 backdrop-blur-sm border-b border-white border-opacity-30 p-4 sm:p-6">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 lg:space-x-4">
+                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-crown text-white text-lg lg:text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg lg:text-2xl font-bold text-black">Premium AI Support</h1>
+                    <p class="text-xs lg:text-sm text-gray-700">Intelligent assistance with real-time data</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 lg:space-x-3">
+                <div class="w-2 h-2 lg:w-3 lg:h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-xs lg:text-sm text-black font-medium">Online</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="max-w-4xl mx-auto p-4 sm:p-6">
+        <div class="bg-white bg-opacity-80 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-xl border border-white border-opacity-40 overflow-hidden">
+            
+            <!-- Chat Messages Area -->
+            <div id="chatMessages" class="h-80 sm:h-96 lg:h-[600px] overflow-y-auto p-4 lg:p-6 space-y-3 lg:space-y-4">
+                <!-- Welcome Message -->
+                <div class="flex items-start space-x-3 opacity-0 animate-fade-in">
+                    <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-crown text-white text-xs lg:text-sm"></i>
+                    </div>
+                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg lg:rounded-xl p-3 lg:p-4 max-w-xs sm:max-w-sm lg:max-w-md border border-blue-200">
+                        <div class="text-xs lg:text-sm text-black">
+                            <div class="text-lg font-bold text-blue-600 mb-2">👋 Welcome to Premium Support!</div>
+                            <div class="text-md font-semibold text-purple-600 mb-1">Your Elite AI Assistant is Ready</div>
+                            <div class="flex items-start space-x-2 mb-1"><div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div><div class="text-gray-700">Real-time account analysis & optimization</div></div>
+                            <div class="flex items-start space-x-2 mb-1"><div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div><div class="text-gray-700">Step-by-step investment guidance</div></div>
+                            <div class="flex items-start space-x-2 mb-1"><div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div><div class="text-gray-700">Personalized staking strategies</div></div><br>
+                            <span class="text-blue-500">💡</span> <strong class="text-black">Ask me anything about your investment journey!</strong>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Premium AI Assistant • Just now</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="hidden px-4 lg:px-6 pb-2">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-crown text-white text-xs lg:text-sm"></i>
+                    </div>
+                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg lg:rounded-xl p-3 lg:p-4 border border-blue-200">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="px-4 lg:px-6 py-3 bg-gray-50 border-t border-gray-200">
+                <div class="flex flex-wrap gap-2 lg:gap-3 mb-3">
+                    <button onclick="sendQuickMessage('account summary')" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-2 rounded-lg text-xs lg:text-sm hover:shadow-lg transition-all duration-300 min-h-[44px] flex items-center">
+                        <i class="fas fa-chart-pie mr-2"></i>Account Summary
+                    </button>
+                    <button onclick="sendQuickMessage('staking guide')" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-lg text-xs lg:text-sm hover:shadow-lg transition-all duration-300 min-h-[44px] flex items-center">
+                        <i class="fas fa-coins mr-2"></i>Staking Guide
+                    </button>
+                    <button onclick="sendQuickMessage('deposit help')" class="bg-gradient-to-r from-green-500 to-teal-500 text-white px-3 py-2 rounded-lg text-xs lg:text-sm hover:shadow-lg transition-all duration-300 min-h-[44px] flex items-center">
+                        <i class="fas fa-plus-circle mr-2"></i>Deposit Help
+                    </button>
+                    <button onclick="sendQuickMessage('human support')" class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2 rounded-lg text-xs lg:text-sm hover:shadow-lg transition-all duration-300 min-h-[44px] flex items-center">
+                        <i class="fas fa-user-headset mr-2"></i>Human Support
+                    </button>
+                </div>
+                
+                <!-- Message Input -->
+                <div class="flex items-center space-x-2 lg:space-x-3">
+                    <input type="text" id="messageInput" placeholder="Ask me anything about your investments..." 
+                           class="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]">
+                    <button onclick="sendMessage()" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg hover:shadow-lg transition-all duration-300 min-h-[44px] flex items-center">
+                        <i class="fas fa-paper-plane text-sm lg:text-base"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Responsive Optimizations */
+@media (max-width: 768px) {
+    .min-h-[44px] {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+    
+    #chatMessages {
+        height: 400px;
+    }
+    
+    .space-x-2 > * + * {
+        margin-left: 0.5rem;
+    }
+    
+    .gap-2 {
+        gap: 0.5rem;
+    }
+}
+</style>
+
+<script>
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    addUserMessage(message);
+    input.value = '';
+    showTypingIndicator();
+    
+    // Enhanced response with step-by-step processing
+    setTimeout(() => {
+        hideTypingIndicator();
+        generateEnhancedResponse(message);
+    }, 2000 + Math.random() * 3000);
+}
+
+function sendQuickMessage(message) {
+    addUserMessage(message);
+    showTypingIndicator();
+    
+    setTimeout(() => {
+        hideTypingIndicator();
+        generateEnhancedResponse(message);
+    }, 2000 + Math.random() * 3000);
+}
+
+function addUserMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start space-x-2 lg:space-x-3 justify-end opacity-0 animate-fade-in';
+    
+    messageDiv.innerHTML = `
+        <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg lg:rounded-xl p-3 lg:p-4 max-w-xs sm:max-w-sm lg:max-w-md">
+            <p class="text-xs lg:text-sm">${message}</p>
+            <p class="text-xs opacity-75 mt-1">Just now</p>
+        </div>
+        <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-user text-gray-600 text-xs lg:text-sm"></i>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function addSupportMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start space-x-3 opacity-0 animate-fade-in';
+    
+    // Enhanced formatting for step-by-step responses
+    const formattedMessage = message
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-black">$1</strong>')
+        .replace(/### (.*?)(?=<br>|$)/g, '<div class="text-lg font-bold text-blue-600 mb-2">$1</div>')
+        .replace(/#### (.*?)(?=<br>|$)/g, '<div class="text-md font-semibold text-purple-600 mb-1">$1</div>')
+        .replace(/• (.*?)(?=<br>|$)/g, '<div class="flex items-start space-x-2 mb-1"><div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div><div class="text-gray-700">$1</div></div>')
+        .replace(/\$(\d+(?:\.\d+)?)/g, '<span class="text-green-600 font-semibold">$$1</span>')
+        .replace(/(\d+(?:\.\d+)?%)/g, '<span class="text-blue-600 font-semibold">$1</span>')
+        .replace(/✅/g, '<span class="text-green-500">✅</span>')
+        .replace(/🎯/g, '<span class="text-blue-500">🎯</span>')
+        .replace(/📊/g, '<span class="text-purple-500">📊</span>');
+    
+    messageDiv.innerHTML = `
+        <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-crown text-white text-xs lg:text-sm"></i>
+        </div>
+        <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg lg:rounded-xl p-3 lg:p-4 max-w-xs sm:max-w-sm lg:max-w-md border border-blue-200">
+            <div class="text-xs lg:text-sm text-black">${formattedMessage}</div>
+            <p class="text-xs text-gray-500 mt-2">Premium AI Assistant • Just now</p>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').classList.remove('hidden');
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').classList.add('hidden');
+}
+
+function generateEnhancedResponse(userMessage) {
+    const message = userMessage.toLowerCase();
+    
+    // Check for human support request first
+    if (message.includes('human') || message.includes('live chat') || message.includes('speak to human') || message.includes('real person')) {
+        addSupportMessage(`### 👨‍💼 Human Support Available<br><br>
+                          **Connect with our live support team via Telegram:**<br><br>
+                          🔗 **Telegram Support**: @USDTSTAKING_SUPPORT<br>
+                          📱 **Direct Link**: <a href="https://t.me/USDTSTAKING_SUPPORT" target="_blank" class="text-blue-600 underline">t.me/USDTSTAKING_SUPPORT</a><br><br>
+                          #### What our human agents can help with:<br>
+                          • Complex technical issues<br>
+                          • Account recovery assistance<br>
+                          • Withdrawal priority processing<br>
+                          • VIP customer escalations<br><br>
+                          ⏱️ **Response Time**: Usually within 30 minutes during business hours (9 AM - 11 PM UTC)`);
+        return;
+    }
+    
+    // Try to get admin-managed response first
+    fetch(`/api/support-response?message=${encodeURIComponent(userMessage)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.response) {
+            // Use admin-managed response
+            addSupportMessage(data.response);
+        } else {
+            // Use fallback default responses
+            addSupportMessage(generateFallbackResponse(userMessage));
+        }
+    })
+    .catch(error => {
+        console.log('API error, using fallback:', error);
+        // If API fails, use fallback
+        addSupportMessage(generateFallbackResponse(userMessage));
+    });
+}
+
+function generateFallbackResponse(userMessage) {
+    const message = userMessage.toLowerCase();
+    
+    // Step-by-step detailed responses
+    if (message.includes('account') || message.includes('summary') || message.includes('balance')) {
+        return `### 📊 Complete Account Analysis<br><br>` +
+               `**Current Status**: Elite Member with Premium Support<br><br>` +
+               `#### Financial Overview:<br>` +
+               `• Available Balance: ${{ '%.2f'|format(current_user.usdt_balance) }}<br>` +
+               `• Total Invested: ${{ '%.2f'|format(current_user.total_staked or 0) }}<br>` +
+               `• Current Earnings: ${{ '%.2f'|format(current_user.total_earned or 0) }}<br>` +
+               `• Portfolio Growth: +15.5%<br><br>` +
+               `#### Active Investments:<br>` +
+               `• Number of Stakes: {{ current_user.stakes|length }}<br>` +
+               `• Average Daily Return: 1.5%<br>` +
+               `• Estimated Monthly Income: $45.00<br><br>` +
+               `#### Referral Program:<br>` +
+               `• Total Referrals: {{ current_user.get_referral_count() }}<br>` +
+               `• Premium Status: {% if current_user.get_referral_count() >= 2 %}✅ Activated{% else %}Pending (Need {{ 2 - current_user.get_referral_count() }} more){% endif %}<br><br>` +
+               `🎯 **Next Steps**: Consider increasing your stake amount or diversifying across different coins for optimal returns!`;
+    }
+    
+    if (message.includes('stake') || message.includes('staking') || message.includes('investment')) {
+        return `### 🚀 Premium Staking Guide<br><br>` +
+               `#### Step-by-Step Staking Process:<br>` +
+               `• **Step 1**: Navigate to Stake section<br>` +
+               `• **Step 2**: Choose your preferred cryptocurrency<br>` +
+               `• **Step 3**: Select staking duration (7-365 days)<br>` +
+               `• **Step 4**: Enter amount and confirm transaction<br><br>` +
+               `#### Available Options:<br>` +
+               `• **USDT**: 0.8-2.0% daily returns<br>` +
+               `• **BTC**: 0.5-1.8% daily returns (Min: $250)<br>` +
+               `• **ETH**: 0.7-1.9% daily returns (Min: $170)<br>` +
+               `• **BNB**: 0.6-1.7% daily returns (Min: $90)<br><br>` +
+               `💡 **Pro Tip**: Longer durations offer higher daily returns!`;
+    }
+    
+    if (message.includes('deposit') || message.includes('add money') || message.includes('fund')) {
+        return `### 💰 Comprehensive Deposit Guide<br><br>` +
+               `#### Quick Deposit Steps:<br>` +
+               `• **Step 1**: Go to Assets → Deposit<br>` +
+               `• **Step 2**: Copy wallet address: **0xae49d3b4775c0524bd81da704340b5ef5a7416e9**<br>` +
+               `• **Step 3**: Send USDT (BEP20 Network) to this address<br>` +
+               `• **Step 4**: Submit transaction hash for verification<br><br>` +
+               `#### Important Notes:<br>` +
+               `• **Network**: Only BEP20 (Binance Smart Chain)<br>` +
+               `• **Processing**: 5-15 minutes after blockchain confirmation<br>` +
+               `• **Verification**: Real blockchain verification required<br><br>` +
+               `✅ **Security**: All deposits are verified through BSC blockchain`;
+    }
+    
+    if (message.includes('withdraw') || message.includes('cash out') || message.includes('payout')) {
+        return `### 💸 Withdrawal Process Guide<br><br>` +
+               `#### Step-by-Step Withdrawal:<br>` +
+               `• **Step 1**: Go to Assets → Withdraw<br>` +
+               `• **Step 2**: Enter withdrawal amount<br>` +
+               `• **Step 3**: Provide your USDT wallet address<br>` +
+               `• **Step 4**: Submit request for admin review<br><br>` +
+               `#### Processing Information:<br>` +
+               `• **Review Time**: 24-48 hours<br>` +
+               `• **Fee**: 1% (Waived for 2+ referrals)<br>` +
+               `• **Minimum**: $10.00<br><br>` +
+               `🎁 **Pro Benefit**: Get 2+ referrals for zero withdrawal fees!`;
+    }
+    
+    if (message.includes('referral') || message.includes('invite') || message.includes('bonus')) {
+        return `### 👥 Advanced Referral System<br><br>` +
+               `#### Commission Structure:<br>` +
+               `• **Level 1**: 5% direct referral commission<br>` +
+               `• **Level 2**: 3% second-level commission<br>` +
+               `• **Level 3**: 2% third-level commission<br><br>` +
+               `#### Premium Benefits (2+ Referrals):<br>` +
+               `• **Bonus**: $20 instant bonus<br>` +
+               `• **Extra Returns**: +2% on all staking<br>` +
+               `• **Zero Fees**: No withdrawal fees<br><br>` +
+               `#### Monthly Salary Program:<br>` +
+               `• **6+ Active Referrals**: $50/month<br>` +
+               `• **13+ Active Referrals**: $110/month<br>` +
+               `• **25+ Active Referrals**: $250/month<br><br>` +
+               `🎯 **Your Referral Link**: {{ url_for('register', _external=True) }}?ref={{ current_user.referral_code }}`;
+    }
+    
+    // Default response for unmatched queries
+    return `### 🤖 Premium AI Assistant<br><br>` +
+           `I'm here to help you with:<br><br>` +
+           `#### Available Services:<br>` +
+           `• **Account Analysis**: Complete portfolio overview<br>` +
+           `• **Staking Guidance**: Investment strategies and tips<br>` +
+           `• **Deposit Help**: Step-by-step funding process<br>` +
+           `• **Withdrawal Support**: Cash-out procedures<br>` +
+           `• **Referral Program**: Earning through referrals<br><br>` +
+           `#### Quick Actions:<br>` +
+           `• Type "account summary" for detailed analysis<br>` +
+           `• Type "staking guide" for investment help<br>` +
+           `• Type "human support" for live assistance<br><br>` +
+           `💡 **Ask me anything about your investment journey!**`;
+}
+
+// Auto-scroll and initialization
+document.addEventListener('DOMContentLoaded', () => {
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Animate welcome message
+    setTimeout(() => {
+        const welcomeMsg = messagesContainer.querySelector('.animate-fade-in');
+        if (welcomeMsg) {
+            welcomeMsg.style.opacity = '1';
+        }
+    }, 500);
+    
+    // Enter key support
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+});
+</script>
+{% endblock %}

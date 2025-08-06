@@ -1,0 +1,704 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- Header -->
+    <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold mb-2">Portfolio</h1>
+        <p class="text-black text-sm">Manage your crypto assets</p>
+    </header>
+
+    <!-- Main Balance Card -->
+    <div class="glass-card p-6 rounded-2xl mb-6 bg-gradient-to-br from-green-50 to-blue-50">
+        <div class="text-center">
+            <p class="text-gray-600 text-sm mb-2">Total Balance</p>
+            <h2 class="text-4xl font-bold text-green-600 mb-4">${{ "%.2f"|format(current_user.usdt_balance) }}</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="showDepositSection()" class="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-plus mr-2"></i>Deposit
+                </button>
+                <button onclick="showWithdrawSection()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-arrow-up mr-2"></i>Withdraw
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Stats -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="glass-card p-4 rounded-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-arrow-down text-white"></i>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Total Deposited</p>
+                    <p class="text-black font-bold text-lg">
+                        ${{ "%.2f"|format(deposits|selectattr('status', 'equalto', 'approved')|map(attribute='amount')|sum) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card p-4 rounded-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-arrow-up text-white"></i>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Total Withdrawn</p>
+                    <p class="text-black font-bold text-lg">
+                        ${{ "%.2f"|format(withdrawals|selectattr('status', 'equalto', 'completed')|map(attribute='amount')|sum) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Section -->
+    <div id="depositSection" class="mb-6" style="display: none;">
+        <div class="glass-card p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-green-50">
+            <h3 class="text-xl font-bold mb-4">Deposit USDT</h3>
+
+            <!-- Network Selection -->
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold mb-3">Select Network:</h4>
+                <div class="flex space-x-4 mb-4">
+                    {% for address in payment_addresses %}
+                    <button type="button" 
+                            onclick="selectNetwork('{{ address.network }}')" 
+                            id="btn{{ address.network }}"
+                            class="network-btn flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-300 hover:scale-105
+                                   {% if loop.first %}bg-blue-500 text-white border-blue-500{% else %}bg-white text-gray-700 border-gray-200{% endif %}">
+                        <div class="text-center">
+                            <div class="font-semibold">{{ address.network }}</div>
+                            <div class="text-sm opacity-80">Min: ${{ "%.0f"|format(address.min_deposit) }}</div>
+                        </div>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Payment Address Display with QR Code -->
+            {% for address in payment_addresses %}
+            <div id="networkDetails{{ address.network }}" class="network-details mb-4" 
+                 style="display: {% if loop.first %}block{% else %}none{% endif %};">
+                <div class="bg-white rounded-lg p-4 border-2 border-gray-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600 mb-1">{{ address.network }} Wallet Address</p>
+                            <input type="text" 
+                                   id="walletAddress{{ address.network }}" 
+                                   value="{{ address.address }}"
+                                   class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-black text-sm font-mono"
+                                   readonly>
+                        </div>
+                        <button type="button" onclick="copyWalletAddress('walletAddress{{ address.network }}')" class="ml-3 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded transition-colors">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+
+                    <!-- QR Code Section -->
+                    <div class="flex items-center justify-center py-2">
+                        <div class="w-32 h-32 bg-white rounded-lg border-2 border-gray-300 flex items-center justify-center" id="qrContainer{{ address.network }}">
+                            {% if address.qr_code_path %}
+                            <img src="data:image/png;base64,{{ address.qr_code_path }}" alt="{{ address.network }} QR Code" class="max-w-full max-h-full rounded">
+                            {% else %}
+                            <canvas id="qrCanvas{{ address.network }}" width="120" height="120" class="rounded"></canvas>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network-specific instructions -->
+                <div class="bg-gradient-to-r {% if address.network == 'BEP20' %}from-yellow-50 to-orange-50 border-yellow-200{% else %}from-red-50 to-pink-50 border-red-200{% endif %} rounded-lg p-4 border-2 mt-3">
+                    <h4 class="{% if address.network == 'BEP20' %}text-yellow-600{% else %}text-red-600{% endif %} font-semibold mb-2">{{ address.network }} Payment Instructions:</h4>
+                    <div class="text-sm text-gray-700 space-y-1">
+                        {% if address.network == 'BEP20' %}
+                        
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-500"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-blue-800">BEP20 Payment Instructions:</h3>
+                                    <div class="mt-2 text-sm text-blue-700">
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>Send USDT to the above BEP20 address</li>
+                                            <li>Use Binance Smart Chain (BEP20) network only</li>
+                                            <li>Minimum deposit: $10 USDT</li>
+                                            <li>Copy the transaction hash after sending</li>
+                                            <li>Real blockchain verification via Moralis API</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Automatic Referral Commission Info -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-coins text-green-500"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-green-800">🎉 Automatic Referral Rewards:</h3>
+                                    <div class="mt-2 text-sm text-green-700">
+                                        <p class="mb-2">If someone referred you, they'll automatically earn commission on your first deposit:</p>
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li><strong>$50-$199.99:</strong> Referrer gets $7 USDT instantly</li>
+                                            <li><strong>$200-$299.99:</strong> Referrer gets $15 USDT instantly</li>
+                                            <li><strong>$300+:</strong> Referrer gets $26 USDT instantly</li>
+                                        </ul>
+                                        <p class="mt-2 text-xs font-medium">✨ Commission is processed automatically after verification!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p>• Send USDT to the above TRC20 address</p> 
+                        <p>• Use Tron (TRC20) network only</p>
+                        <p>• Minimum deposit: ${{ "%.0f"|format(address.min_deposit) }} USDT</p>
+                        <p>• Copy the transaction hash after sending</p>
+                        <p class="text-green-600 font-medium">• Real blockchain verification via Tron API</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Deposit Form -->
+            <form method="POST" class="space-y-4" id="depositForm">
+                {{ deposit_form.hidden_tag() }}
+                <input type="hidden" name="deposit" value="1">
+                <input type="hidden" name="network" id="selectedNetworkInput" value="BEP20">
+
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">Amount (USDT)</label>
+                    {{ deposit_form.amount(class="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400", placeholder="Enter amount you sent") }}
+                    {% for error in deposit_form.amount.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">Transaction Hash</label>
+                    {{ deposit_form.transaction_id(class="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400", placeholder="0x...") }}
+                    {% for error in deposit_form.transaction_id.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                    <p class="text-gray-500 text-xs mt-1">Enter the full transaction hash (starts with 0x)</p>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button type="button" onclick="hideDepositSection()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-all duration-300">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg transition-all duration-300">
+                        <i class="fas fa-shield-alt mr-1"></i> Verify Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdrawal Section -->
+    <div id="withdrawalSection" class="mb-6" style="display: none;">
+        <div class="glass-card p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50">
+            <h3 class="text-xl font-bold mb-4">Withdraw USDT</h3>
+
+            <form method="POST" class="space-y-4">
+                {{ withdrawal_form.hidden_tag() }}
+                <input type="hidden" name="withdrawal" value="1">
+
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">Amount (USDT)</label>
+                    {{ withdrawal_form.amount(class="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400", placeholder="Enter amount") }}
+                    {% for error in withdrawal_form.amount.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                    <p class="text-gray-600 text-sm mt-1">Available: ${{ "%.2f"|format(current_user.usdt_balance) }}</p>
+                </div>
+
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">Wallet Address</label>
+                    {{ withdrawal_form.wallet_address(class="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400", placeholder="Enter your wallet address") }}
+                    {% for error in withdrawal_form.wallet_address.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">Network</label>
+                    {{ withdrawal_form.network(class="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400") }}
+                    {% for error in withdrawal_form.network.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Fee Information -->
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-2 border-yellow-200">
+                    <h4 class="text-yellow-600 font-semibold mb-2">Fee Information:</h4>
+                    <div class="text-sm text-gray-700 space-y-1">
+                        {% if current_user.has_two_referrals() %}
+                        <p class="text-green-600 font-semibold">✓ No withdrawal fee (2+ referrals)</p>
+                        {% else %}
+                        <p>• 1% withdrawal fee applies</p>
+                        <p>• Get 2 referrals for zero fees!</p>
+                        {% endif %}
+                        <p>• Minimum withdrawal: $10 USDT</p>
+                        <p>• Processing time: 1-24 hours</p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button type="button" onclick="hideWithdrawSection()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-all duration-300">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition-all duration-300">
+                        Submit Withdrawal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Referral Section -->
+    <div class="glass-card p-6 rounded-2xl mb-6 bg-gradient-to-br from-purple-50 to-pink-50">
+        <h3 class="text-xl font-bold text-black mb-4">
+            <i class="fas fa-users mr-2 text-purple-600"></i>Referral Program
+        </h3>
+
+        <div class="space-y-4">
+            <!-- Referral Link -->
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">Your Referral Link</label>
+                <div class="flex items-center space-x-2">
+                    <input type="text" 
+                           id="referralLink" 
+                           value="{{ url_for('register', referral_code=current_user.referral_code, _external=True) }}"
+                           class="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-black text-sm font-mono"
+                           readonly>
+                    <button onclick="copyReferralLink()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="flex flex-col items-center space-y-3">
+                <div id="qrCodeContainer" class="w-48 h-48 bg-white rounded-lg border-2 border-gray-300 flex items-center justify-center">
+                    <canvas id="referralQRCode" width="180" height="180" class="hidden"></canvas>
+                    <div id="qrPlaceholder" class="text-center">
+                        <i class="fas fa-qrcode text-gray-400 text-4xl mb-2"></i>
+                        <p class="text-gray-500 text-sm">Click to generate QR</p>
+                    </div>
+                </div>
+                <button onclick="generateReferralQR()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-lg transition-all duration-300">
+                    <i class="fas fa-qrcode mr-2"></i>Generate QR Code
+                </button>
+            </div>
+
+            <!-- Referral Stats -->
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="bg-white rounded-lg p-4 border border-purple-200">
+                    <div class="text-center">
+                        <p class="text-gray-600 text-sm">Total Referrals</p>
+                        <p class="text-purple-600 font-bold text-xl">{{ current_user.get_referral_count() }}</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-purple-200">
+                    <div class="text-center">
+                        <p class="text-gray-600 text-sm">Active Referrals</p>
+                        <p class="text-purple-600 font-bold text-xl">{{ current_user.get_active_referrals_count() }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Commission System -->
+    <div class="glass-card p-6 rounded-2xl mb-6 bg-gradient-to-br from-green-50 to-blue-50">
+        <h3 class="text-xl font-bold text-black mb-4">
+            <i class="fas fa-coins mr-2 text-green-600"></i>Deposit Commission System
+        </h3>
+
+        <div class="space-y-4">
+            <p class="text-gray-700 text-sm">
+                When someone uses your referral link to register and deposit, you'll receive a commission based on their first deposit amount:
+            </p>
+
+            <ul class="list-disc pl-5 space-y-2">
+                <li>$50 - $199.99: You get $7 USDT</li>
+                <li>$200 - $299.99: You get $15 USDT</li>
+                <li>$300 or more: You get $26 USDT</li>
+            </ul>
+
+            <p class="text-gray-700 text-sm">
+                This commission is automatically credited to your account after the deposit is verified.
+            </p>
+        </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Transaction History</h3>
+            <div class="flex bg-gray-100 rounded-lg p-1">
+                <button onclick="showTab('deposits')" id="depositsTab" class="tab-button px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 bg-blue-500 text-white">
+                    Deposits
+                </button>
+                <button onclick="showTab('withdrawals')" id="withdrawalsTab" class="tab-button px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 text-gray-600 hover:text-gray-800">
+                    Withdrawals
+                </button>
+            </div>
+        </div>
+
+        <!-- Deposits Tab -->
+        <div id="depositsContent" class="tab-content">
+            <div class="space-y-3">
+                {% for deposit in deposits %}
+                <div class="glass-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-black font-semibold">${{ "%.2f"|format(deposit.amount) }}</p>
+                                <p class="text-gray-600 text-sm">{{ deposit.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                <p class="text-gray-500 text-xs">{{ deposit.transaction_id[:20] }}...</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            {% if deposit.status == 'pending' %}
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pending</span>
+                            {% elif deposit.status in ['approved', 'verified'] %}
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Success</span>
+                            {% else %}
+                            <div class="text-right">
+                                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Failed</span>
+                                <p class="text-xs text-gray-500 mt-1">You can retry this transaction</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-history text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-600">No deposits yet</p>
+                    <p class="text-gray-500 text-sm">Make your first deposit to get started</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Withdrawals Tab -->
+        <div id="withdrawalsContent" class="tab-content hidden">
+            <div class="space-y-3">
+                {% for withdrawal in withdrawals %}
+                <div class="glass-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-arrow-up text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-black font-semibold">${{ "%.2f"|format(withdrawal.amount) }}</p>
+                                <p class="text-gray-600 text-sm">{{ withdrawal.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                <p class="text-gray-500 text-xs">{{ withdrawal.network }} Network</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            {% if withdrawal.status == 'pending' %}
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pending</span>
+                            {% elif withdrawal.status == 'completed' %}
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Success</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Failed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-arrow-up text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-600">No withdrawals yet</p>
+                    <p class="text-gray-500 text-sm">Your withdrawal history will appear here</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    // Reset all tab buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('bg-blue-500', 'text-white');
+        button.classList.add('text-gray-600', 'hover:text-gray-800');
+    });
+
+    // Show selected tab content
+    document.getElementById(tabName + 'Content').classList.remove('hidden');
+
+    // Highlight active tab button
+    const activeButton = document.getElementById(tabName + 'Tab');
+    activeButton.classList.remove('text-gray-600', 'hover:text-gray-800');
+    activeButton.classList.add('bg-blue-500', 'text-white');
+}
+
+function showDepositSection() {
+    // Hide withdrawal section if open
+    document.getElementById('withdrawalSection').style.display = 'none';
+    // Show deposit section
+    document.getElementById('depositSection').style.display = 'block';
+    // Generate QR codes for all networks
+    generateAllQRCodes();
+    // Scroll to the section
+    document.getElementById('depositSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideDepositSection() {
+    document.getElementById('depositSection').style.display = 'none';
+}
+
+function showWithdrawSection() {
+    // Hide deposit section if open
+    document.getElementById('depositSection').style.display = 'none';
+    // Show withdrawal section
+    document.getElementById('withdrawalSection').style.display = 'block';
+    // Scroll to the section
+    document.getElementById('withdrawalSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideWithdrawSection() {
+    document.getElementById('withdrawalSection').style.display = 'none';
+}
+
+function generateAllQRCodes() {
+    {% for address in payment_addresses %}
+    generateQRCode('{{ address.network }}', '{{ address.address }}');
+    {% endfor %}
+}
+
+function generateQRCode(network, address) {
+    const canvas = document.getElementById('qrCanvas' + network);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Use QR API service to generate QR code
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(address)}`;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0, 120, 120);
+    };
+    img.onerror = function() {
+        // Fallback design if QR API fails
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, 120, 120);
+
+        // Draw simple QR pattern
+        ctx.fillStyle = '#000';
+        // Corner squares
+        drawFinderPattern(ctx, 5, 5);
+        drawFinderPattern(ctx, 95, 5);
+        drawFinderPattern(ctx, 5, 95);
+
+        // Add some pattern blocks
+        for (let i = 0; i < 400; i++) {
+            const x = Math.floor(Math.random() * 120);
+            const y = Math.floor(Math.random() * 120);
+            if (!isFinderArea(x, y)) {
+                ctx.fillRect(x, y, 2, 2);
+            }
+        }
+
+        // Add text
+        ctx.fillStyle = '#666';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR Code', 60, 60);
+        ctx.fillText('Generated', 60, 75);
+    };
+    img.src = qrApiUrl;
+}
+
+function drawFinderPattern(ctx, x, y) {
+    // Outer square
+    ctx.fillRect(x, y, 20, 20);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 2, y + 2, 16, 16);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + 4, y + 4, 12, 12);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 6, y + 6, 8, 8);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + 8, y + 8, 4, 4);
+}
+
+function isFinderArea(x, y) {
+    return (x < 30 && y < 30) || (x > 90 && y < 30) || (x < 30 && y > 90);
+}
+
+function selectNetwork(network) {
+    // Hide all network details
+    const allDetails = document.querySelectorAll('.network-details');
+    allDetails.forEach(detail => detail.style.display = 'none');
+
+    // Show selected network details
+    document.getElementById('networkDetails' + network).style.display = 'block';
+
+    // Update button styles
+    const allButtons = document.querySelectorAll('.network-btn');
+    allButtons.forEach(btn => {
+        btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+        btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+    });
+
+    // Style selected button
+    const selectedBtn = document.getElementById('btn' + network);
+    selectedBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+    selectedBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+
+    // Update hidden network input
+    document.getElementById('selectedNetworkInput').value = network;
+}
+
+function copyWalletAddress(elementId) {
+    const walletElement = document.getElementById(elementId);
+    const walletAddress = walletElement ? walletElement.value || walletElement.textContent : '';
+
+    if (walletAddress) {
+        navigator.clipboard.writeText(walletAddress).then(() => {
+            const button = event.target.closest('button');
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            button.classList.add('bg-green-500');
+            button.classList.remove('bg-blue-500');
+
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('bg-green-500');
+                button.classList.add('bg-blue-500');
+            }, 2000);
+        });
+    }
+}
+
+function copyReferralLink() {
+    const input = document.getElementById('referralLink');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).then(() => {
+        const button = event.target;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('bg-green-500');
+        button.classList.remove('bg-blue-500');
+
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('bg-green-500');
+            button.classList.add('bg-blue-500');
+        }, 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        const button = event.target;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('bg-green-500');
+
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('bg-green-500');
+            button.classList.add('bg-blue-500');
+        }, 2000);
+    });
+}
+
+function generateReferralQR() {
+    const referralLink = document.getElementById('referralLink').value;
+    const canvas = document.getElementById('referralQRCode');
+    const ctx = canvas.getContext('2d');
+
+    // Hide placeholder and show canvas
+    document.getElementById('qrPlaceholder').style.display = 'none';
+    canvas.classList.remove('hidden');
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Use QR API service to generate QR code
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(referralLink)}`;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0, 180, 180);
+    };
+    img.onerror = function() {
+        // Fallback design if QR API fails
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, 180, 180);
+
+        // Draw simple QR pattern
+        ctx.fillStyle = '#000';
+        // Corner squares
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                const x = i === 2 ? 150 : i * 30;
+                const y = j === 2 ? 150 : j * 30;
+                if (i !== 2 || j !== 2) {
+                    ctx.fillRect(x, y, 20, 20);
+                }
+            }
+        }
+
+        // Add some pattern blocks
+        for (let i = 0; i < 10; i++) {
+            const x = Math.random() * 140 + 20;
+            const y = Math.random() * 140 + 20;
+            ctx.fillRect(x, y, 6, 6);
+        }
+
+        // Add text
+        ctx.fillStyle = '#666';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Referral QR', 90, 90);
+        ctx.fillText('Code Generated', 90, 105);
+    };
+    img.src = qrApiUrl;
+}
+
+// Form validation
+document.getElementById('depositForm').addEventListener('submit', function(e) {
+    const selectedNetwork = document.getElementById('selectedNetworkInput').value;
+    if (!selectedNetwork) {
+        e.preventDefault();
+        alert('Please select a network first');
+        return false;
+    }
+});
+</script>
+{% endblock %}

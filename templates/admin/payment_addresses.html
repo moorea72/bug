@@ -1,0 +1,220 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Payment Address Management{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Payment Address Management</h2>
+            <a href="{{ url_for('admin_add_payment_address') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add New Address
+            </a>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Current Payment Addresses</h3>
+            {% if addresses %}
+                <div class="grid gap-4">
+                    {% for address in addresses %}
+                    <div class="border border-gray-200 rounded-lg p-4 {% if address.is_active %}bg-green-50{% else %}bg-gray-50{% endif %}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <span class="inline-block px-3 py-1 text-sm font-medium rounded-full {% if address.network == 'BEP20' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ address.network }}
+                                    </span>
+                                    {% if address.is_active %}
+                                        <span class="ml-2 inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Active</span>
+                                    {% else %}
+                                        <span class="ml-2 inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">Inactive</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-gray-800 font-mono text-sm break-all">{{ address.address }}</p>
+                                <p class="text-gray-600 text-sm mt-1">Min Deposit: ${{ "%.2f"|format(address.min_deposit) }}</p>
+                            </div>
+                            <div class="ml-4 flex flex-col items-center">
+                                {% if address.qr_code_path %}
+                                    <img src="data:image/png;base64,{{ address.qr_code_path }}" alt="QR Code" class="w-20 h-20 border border-gray-300 rounded">
+                                {% else %}
+                                    <div class="w-20 h-20 bg-gray-200 border border-gray-300 rounded flex items-center justify-center">
+                                        <span class="text-gray-500 text-xs">No QR</span>
+                                    </div>
+                                {% endif %}
+                                <div class="mt-2 flex space-x-2">
+                                    <a href="{{ url_for('admin_edit_payment_address', address_id=address.id) }}" class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin_delete_payment_address', address_id=address.id) }}" class="inline" onsubmit="return confirm('Are you sure?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
+                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="text-gray-500 mb-4">
+                        <i class="fas fa-wallet text-4xl"></i>
+                    </div>
+                    <p class="text-gray-600 mb-4">No payment addresses configured yet.</p>
+                    <a href="{{ url_for('admin_add_payment_address') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                        Add First Address
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Blockchain Settings Section -->
+        <div class="border-t pt-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Blockchain API Settings</h3>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <a href="{{ url_for('admin_blockchain_settings') }}" class="inline-flex items-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-cog mr-2"></i>Configure Moralis API
+                </a>
+                <p class="text-gray-600 text-sm mt-2">Configure Moralis API settings for blockchain transaction verification</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid px-4 py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Payment Address Management</h1>
+        <a href="{{ url_for('admin_add_payment_address') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add New Address
+        </a>
+    </div>
+
+    <!-- Payment Addresses List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Active Payment Addresses</h5>
+        </div>
+        <div class="card-body">
+            {% if addresses %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Network</th>
+                            <th>Address</th>
+                            <th>QR Code</th>
+                            <th>Min Deposit</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for address in addresses %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary">{{ address.network }}</span>
+                            </td>
+                            <td>
+                                <div class="font-monospace small">
+                                    {{ address.address[:20] }}...
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyAddress('{{ address.address }}')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </td>
+                            <td class="text-center">
+                                {% if address.qr_code_path %}
+                                <img src="data:image/png;base64,{{ address.qr_code_path }}" 
+                                     alt="QR Code" class="img-thumbnail" style="width: 60px; height: 60px;">
+                                {% else %}
+                                <i class="fas fa-qrcode text-muted"></i>
+                                {% endif %}
+                            </td>
+                            <td>${{ "%.2f"|format(address.min_deposit) }}</td>
+                            <td>
+                                {% if address.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ address.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin_edit_payment_address', address_id=address.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="toggleAddress({{ address.id }}, {{ not address.is_active|tojson }})">
+                                        {% if address.is_active %}
+                                        <i class="fas fa-eye-slash"></i>
+                                        {% else %}
+                                        <i class="fas fa-eye"></i>
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-wallet fa-3x text-muted mb-3"></i>
+                <h5>No Payment Addresses</h5>
+                <p class="text-muted">Add payment addresses for users to deposit funds.</p>
+                <a href="{{ url_for('admin_add_payment_address') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Add First Address
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function copyAddress(address) {
+    navigator.clipboard.writeText(address).then(() => {
+        showToast('Address copied to clipboard', 'success');
+    });
+}
+
+function toggleAddress(addressId, newStatus) {
+    if (confirm('Are you sure you want to change this address status?')) {
+        fetch(`/admin/payment-address/${addressId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({is_active: newStatus})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                showToast(data.message || 'Error updating address', 'error');
+            }
+        });
+    }
+}
+
+function showToast(message, type) {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

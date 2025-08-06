@@ -1,0 +1,126 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-white">{{ title }}</h1>
+        <a href="{{ url_for('admin_payment_addresses') }}" class="glass-button px-4 py-2 rounded-lg text-white">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Addresses
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Payment Address Form -->
+        <div class="lg:col-span-2">
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-lg font-semibold text-white mb-4">Payment Address Details</h3>
+                
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            {{ form.network.label(class="block text-white font-medium mb-2") }}
+                            {{ form.network(class="form-select w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                            {% if form.network.errors %}
+                                {% for error in form.network.errors %}
+                                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            {{ form.min_deposit.label(class="block text-white font-medium mb-2") }}
+                            {{ form.min_deposit(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500", step="0.01") }}
+                            {% if form.min_deposit.errors %}
+                                {% for error in form.min_deposit.errors %}
+                                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.address.label(class="block text-white font-medium mb-2") }}
+                        {{ form.address(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono") }}
+                        {% if form.address.errors %}
+                            {% for error in form.address.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        <p class="text-gray-400 text-sm mt-1">Enter the complete wallet address for receiving deposits</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center space-x-2">
+                            {{ form.is_active(class="w-4 h-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500") }}
+                            {{ form.is_active.label(class="text-white font-medium") }}
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors") }}
+                        <a href="{{ url_for('admin_payment_addresses') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- QR Code Preview -->
+        <div class="lg:col-span-1">
+            {% if address and address.qr_code_path %}
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-lg font-semibold text-white mb-4">QR Code Preview</h3>
+                <div class="text-center">
+                    <img src="data:image/png;base64,{{ address.qr_code_path }}" 
+                         alt="QR Code" class="max-w-full h-auto rounded-lg mx-auto" style="max-width: 200px;">
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Help -->
+            <div class="glass-card p-6 rounded-xl mt-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Help</h3>
+                
+                <div class="mb-4">
+                    <h4 class="text-white font-medium mb-2">Network Types:</h4>
+                    <ul class="text-gray-300 text-sm space-y-1">
+                        <li><strong>BEP20:</strong> Binance Smart Chain network</li>
+                        <li><strong>TRC20:</strong> TRON network</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-medium mb-2">Address Format:</h4>
+                    <ul class="text-gray-300 text-sm space-y-1">
+                        <li>Must start with "0x" for BEP20</li>
+                        <li>Must start with "T" for TRC20</li>
+                        <li>QR code will be generated automatically</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+.glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

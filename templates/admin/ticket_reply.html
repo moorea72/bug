@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-white">
+            {% if ticket.admin_reply %}Edit Reply{% else %}Reply to Ticket{% endif %}
+        </h1>
+        <a href="{{ url_for('admin_support_tickets') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Tickets
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Ticket Details -->
+        <div class="lg:col-span-1">
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-xl font-bold text-white mb-4">Ticket Details</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-gray-400 text-sm">User</label>
+                        <div class="flex items-center mt-1">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">{{ ticket.user.username[0].upper() }}</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-white font-medium">{{ ticket.user.username }}</p>
+                                <p class="text-gray-400 text-sm">{{ ticket.user.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-gray-400 text-sm">Subject</label>
+                        <p class="text-white font-medium">{{ ticket.subject }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-gray-400 text-sm">Problem Type</label>
+                        <p class="text-white">{{ ticket.problem_type.title() }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-gray-400 text-sm">Priority</label>
+                        <span class="px-2 py-1 rounded-full text-xs
+                            {% if ticket.priority == 'urgent' %}bg-red-600 text-red-100
+                            {% elif ticket.priority == 'high' %}bg-orange-600 text-orange-100
+                            {% elif ticket.priority == 'normal' %}bg-blue-600 text-blue-100
+                            {% else %}bg-gray-600 text-gray-100{% endif %}">
+                            {{ ticket.priority.title() }}
+                        </span>
+                    </div>
+                    
+                    <div>
+                        <label class="text-gray-400 text-sm">Status</label>
+                        <span class="px-2 py-1 rounded-full text-xs
+                            {% if ticket.status == 'open' %}bg-yellow-600 text-yellow-100
+                            {% elif ticket.status == 'replied' %}bg-green-600 text-green-100
+                            {% else %}bg-gray-600 text-gray-100{% endif %}">
+                            {{ ticket.status.title() }}
+                        </span>
+                    </div>
+                    
+                    <div>
+                        <label class="text-gray-400 text-sm">Created</label>
+                        <p class="text-white">{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    
+                    {% if ticket.replied_at %}
+                    <div>
+                        <label class="text-gray-400 text-sm">Last Reply</label>
+                        <p class="text-white">{{ ticket.replied_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Reply Form -->
+        <div class="lg:col-span-2">
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-xl font-bold text-white mb-4">User's Message</h3>
+                <div class="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6">
+                    <p class="text-white">{{ ticket.message }}</p>
+                </div>
+                
+                <form method="POST" class="space-y-4">
+                    {{ form.hidden_tag() }}
+                    
+                    <div>
+                        {{ form.admin_reply.label(class="block text-gray-400 text-sm mb-2") }}
+                        {{ form.admin_reply(class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-blue-500 resize-vertical min-h-32", placeholder="Type your response here...") }}
+                        {% for error in form.admin_reply.errors %}
+                            <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <div>
+                        {{ form.status.label(class="block text-gray-400 text-sm mb-2") }}
+                        {{ form.status(class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500") }}
+                        {% for error in form.status.errors %}
+                            <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer") }}
+                        <a href="{{ url_for('admin_support_tickets') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">Cancel</a>
+                    </div>
+                </form>
+                
+                {% if ticket.admin_reply %}
+                <div class="mt-6 pt-6 border-t border-gray-600">
+                    <h4 class="text-lg font-bold text-white mb-2">Current Admin Reply</h4>
+                    <div class="bg-blue-900 border border-blue-700 rounded-lg p-4">
+                        <p class="text-blue-100">{{ ticket.admin_reply }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

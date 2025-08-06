@@ -1,0 +1,135 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Coin Staking Plans</h1>
+            <p class="text-blue-200 mt-2">Manage individual coin staking rates and durations</p>
+        </div>
+        <div class="flex space-x-4">
+            <a href="{{ url_for('admin_coin_return_rates') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-percentage mr-2"></i>Return Rates
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Individual Coin Sections -->
+    {% for coin in coins %}
+    <div class="admin-card rounded-xl p-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                {% if coin.logo_url %}
+                    <img src="{{ coin.logo_url }}" alt="{{ coin.symbol }}" class="w-12 h-12 rounded-full">
+                {% else %}
+                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-coins text-white text-xl"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h2 class="text-2xl font-bold text-white">{{ coin.name }} ({{ coin.symbol }})</h2>
+                    <p class="text-blue-200">Minimum Stake: ${{ coin.min_stake }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('admin_edit_coin_return_rates', coin_id=coin.id) }}" 
+               class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-edit mr-2"></i>Edit Rates
+            </a>
+        </div>
+
+        <!-- Staking Plans for this Coin -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {% set coin_plans = plans_by_coin.get(coin.id, {}) %}
+            {% for duration in [7, 15, 30, 90, 120, 180] %}
+            <div class="bg-black bg-opacity-20 rounded-xl p-4 border border-gray-600">
+                <div class="text-center">
+                    <div class="text-lg font-semibold text-white mb-2">{{ duration }} Days</div>
+                    {% if coin_plans.get(duration) %}
+                        <div class="text-2xl font-bold text-green-400 mb-1">{{ "%.2f"|format(coin_plans[duration]) }}%</div>
+                        <div class="text-xs text-gray-400">Daily Return</div>
+                        <div class="mt-2">
+                            <div class="text-sm text-blue-300">Total: {{ "%.1f"|format(coin_plans[duration] * duration) }}%</div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="px-2 py-1 bg-green-500 bg-opacity-20 text-green-300 rounded-full text-xs">Active</span>
+                        </div>
+                    {% else %}
+                        <div class="text-2xl font-bold text-gray-500 mb-1">0.00%</div>
+                        <div class="text-xs text-gray-500">Daily Return</div>
+                        <div class="mt-2">
+                            <div class="text-sm text-gray-500">Not Set</div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="px-2 py-1 bg-red-500 bg-opacity-20 text-red-300 rounded-full text-xs">Inactive</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Stats for this Coin -->
+        <div class="mt-4 grid grid-cols-3 gap-4">
+            <div class="bg-blue-500 bg-opacity-20 rounded-lg p-3 text-center">
+                <div class="text-sm text-blue-200">Total Plans</div>
+                <div class="text-lg font-bold text-white">{{ coin_plans|length }}</div>
+            </div>
+            <div class="bg-green-500 bg-opacity-20 rounded-lg p-3 text-center">
+                <div class="text-sm text-green-200">Avg Daily Rate</div>
+                <div class="text-lg font-bold text-white">
+                    {% if coin_plans %}
+                        {{ "%.2f"|format(coin_plans.values()|sum / coin_plans|length) }}%
+                    {% else %}
+                        0.00%
+                    {% endif %}
+                </div>
+            </div>
+            <div class="bg-purple-500 bg-opacity-20 rounded-lg p-3 text-center">
+                <div class="text-sm text-purple-200">Best Return</div>
+                <div class="text-lg font-bold text-white">
+                    {% if coin_plans %}
+                        {{ "%.2f"|format(coin_plans.values()|max) }}%
+                    {% else %}
+                        0.00%
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not coins %}
+    <div class="admin-card rounded-xl p-8 text-center">
+        <i class="fas fa-coins text-4xl text-gray-400 mb-4"></i>
+        <h3 class="text-xl font-semibold text-white mb-2">No Coins Found</h3>
+        <p class="text-gray-300 mb-4">Please add coins first to manage their staking plans.</p>
+        <a href="{{ url_for('admin_coins') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i>Add Coins
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+.glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

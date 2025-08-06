@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Salary Dashboard{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}">
+<style>
+/* Fast loading optimization */
+.salary-card { will-change: transform; transform: translateZ(0); }
+.progress-bar { will-change: width; transform: translateZ(0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Loading Overlay -->
+<div id="mainLoadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Salary Dashboard...</div>
+        <div class="loading-subtext">Please wait while we fetch your data</div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-6 max-w-6xl">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-black">Salary Dashboard</h1>
+            <p class="text-gray-600">Advanced salary system with crypto payments</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            {% if not current_user.salary_wallet_address %}
+            <a href="{{ url_for('set_salary_wallet') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-wallet mr-2"></i>Set Wallet
+            </a>
+            {% endif %}
+            <a href="{{ url_for('profile') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Profile
+            </a>
+        </div>
+    </header>
+
+    <!-- Current Status -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card p-6 rounded-xl">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-users text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-black">Active Referrals</h3>
+                <p class="text-3xl font-bold text-green-600">{{ active_referrals }}</p>
+                <p class="text-gray-600 text-sm">Users with 100+ USDT deposits</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-wallet text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-black">Total Balance</h3>
+                <p class="text-3xl font-bold text-blue-600">${{ "%.2f"|format(total_balance) }}</p>
+                <p class="text-gray-600 text-sm">Wallet + Active Stakes</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-xl">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-dollar-sign text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-black">Current Salary</h3>
+                {% if eligible_plan %}
+                <p class="text-3xl font-bold text-purple-600">${{ salary_plans[eligible_plan]['monthly_salary'] }}/month</p>
+                <p class="text-gray-600 text-sm">{{ salary_plans[eligible_plan]['name'] }}</p>
+                {% else %}
+                <p class="text-3xl font-bold text-gray-500">$0/month</p>
+                <p class="text-gray-600 text-sm">Not eligible</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Salary Wallet Address -->
+    <div class="glass-card p-6 rounded-xl mb-8">
+        <h3 class="text-xl font-bold text-black mb-4">
+            <i class="fas fa-wallet mr-2"></i>Salary Wallet Address
+        </h3>
+        {% if current_user.salary_wallet_address %}
+        <div class="bg-green-100 border border-green-300 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-800 font-medium">✓ Wallet Address Set</p>
+                    <p class="text-green-600 text-sm font-mono break-all">{{ current_user.salary_wallet_address }}</p>
+                    <p class="text-green-600 text-xs mt-1">This address cannot be changed for security reasons</p>
+                    <div class="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                        <p class="text-blue-800 font-medium text-sm">💰 Automatic Payment System</p>
+                        <p class="text-blue-600 text-xs mt-1">Your salary will be sent directly to this address within 1 day automatically on the 1st of each month. No manual request needed!</p>
+                    </div>
+                </div>
+                {% if eligible_plan %}
+                <div class="bg-green-500 text-white px-4 py-2 rounded-lg text-center">
+                    <i class="fas fa-check-circle mr-2"></i>Auto-Payment Active
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-red-100 border border-red-300 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-red-800 font-medium">⚠ No Wallet Address Set</p>
+                    <p class="text-red-600 text-sm">You must set a crypto wallet address to receive salary payments</p>
+                </div>
+                <a href="{{ url_for('set_salary_wallet') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-plus mr-2"></i>Set Wallet
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Salary Plans Progress -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {% for plan_id, plan_progress in progress.items() %}
+        <div class="glass-card p-6 rounded-xl border-2 {{ 'border-green-500 bg-green-50' if plan_progress.is_eligible else 'border-gray-300' }}">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-black">
+                    Plan {{ plan_id }}: {{ plan_progress.plan.name }}
+                </h3>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-{{ plan_progress.plan.color }}-600">
+                        ${{ plan_progress.plan.monthly_salary }}/month
+                    </p>
+                    {% if plan_progress.is_eligible %}
+                    <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">ELIGIBLE</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Referral Progress -->
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-black mb-1">
+                    <span>Active Referrals</span>
+                    <span>{{ plan_progress.referral_count }}/{{ plan_progress.plan.required_referrals }}</span>
+                </div>
+                <div class="w-full bg-gray-300 rounded-full h-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500" 
+                         style="width: {{ plan_progress.referral_progress }}%"></div>
+                </div>
+                <p class="text-xs text-gray-600 mt-1">{{ plan_progress.referral_progress }}% complete</p>
+            </div>
+
+            <!-- Balance Progress -->
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-black mb-1">
+                    <span>Total Balance (Wallet + Stakes)</span>
+                    <span>${{ "%.2f"|format(plan_progress.total_balance) }}/${{ plan_progress.plan.required_balance }}</span>
+                </div>
+                <div class="w-full bg-gray-300 rounded-full h-3">
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500" 
+                         style="width: {{ plan_progress.balance_progress }}%"></div>
+                </div>
+                <p class="text-xs text-gray-600 mt-1">{{ plan_progress.balance_progress }}% complete</p>
+            </div>
+
+            <div class="text-xs text-gray-600 space-y-1">
+                <p>• Referrals must have deposited 100+ USDT</p>
+                <p>• Balance includes wallet + active stakes</p>
+                <p>• Must maintain requirements to keep salary</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Automatic System Information -->
+    <div class="glass-card p-6 rounded-xl mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
+        <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-robot text-white text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-black">🤖 Automatic Salary System</h3>
+                <p class="text-gray-600 text-sm">No manual requests needed - completely automatic</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div class="flex items-center">
+                <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
+                <span class="text-black">Processes on 1st of each month</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                <span class="text-black">Eligible users auto-selected</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fas fa-clock text-purple-500 mr-2"></i>
+                <span class="text-black">Payment within 24 hours</span>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p class="text-yellow-800 text-sm">
+                <i class="fas fa-info-circle mr-2"></i>
+                <strong>How it works:</strong> On the 1st of each month, the system automatically checks all users who have set wallet addresses. If you meet the requirements for any salary plan, a payment request is automatically created and sent to admin for processing.
+            </p>
+        </div>
+    </div>
+
+    <!-- Recent Salary Withdrawals -->
+    <div class="glass-card p-6 rounded-xl">
+        <h3 class="text-xl font-bold text-black mb-4">
+            <i class="fas fa-history mr-2"></i>Recent Salary Requests
+        </h3>
+        {% if recent_withdrawals %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-300">
+                        <th class="text-left py-2 text-black">Date</th>
+                        <th class="text-left py-2 text-black">Plan</th>
+                        <th class="text-left py-2 text-black">Amount</th>
+                        <th class="text-left py-2 text-black">Status</th>
+                        <th class="text-left py-2 text-black">Transaction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in recent_withdrawals %}
+                    <tr class="border-b border-gray-200">
+                        <td class="py-2 text-black">{{ withdrawal.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="py-2 text-black">Plan {{ withdrawal.plan_id }}</td>
+                        <td class="py-2 text-black">${{ withdrawal.amount }}</td>
+                        <td class="py-2">
+                            {% if withdrawal.status == 'pending' %}
+                            <span class="bg-yellow-500 text-white px-2 py-1 rounded text-xs">PENDING</span>
+                            {% elif withdrawal.status == 'approved' %}
+                            <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">APPROVED</span>
+                            {% else %}
+                            <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">REJECTED</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 text-black">
+                            {% if withdrawal.transaction_hash %}
+                            <span class="text-xs font-mono">{{ withdrawal.transaction_hash[:10] }}...</span>
+                            {% else %}
+                            <span class="text-gray-500 text-xs">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-file-invoice text-gray-400 text-4xl mb-4"></i>
+            <p class="text-gray-600">No salary requests yet</p>
+            <p class="text-gray-500 text-sm">Meet the requirements and wait for the 1st of next month for automatic processing</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="flex justify-center mt-6">
+        {% if current_user.eligible_for_salary and not current_user.requested_salary %}
+
+                <div class="alert alert-success">
+                    <i class="fas fa-robot mr-2"></i>
+                    <strong>Automatic Salary System:</strong> Your salary is automatically processed on the 1st of each month. No manual request needed!
+                </div>
+
+                <div class="text-center">
+                    <div class="badge badge-success badge-lg p-3">
+                        <i class="fas fa-calendar-check mr-2"></i>
+                        Next Processing: 1st of Next Month
+                    </div>
+                </div>
+
+
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Auto-refresh progress every 30 seconds
+setInterval(function() {
+    fetch('/api/salary-progress')
+        .then(response => response.json())
+        .then(data => {
+            // Update progress bars and numbers without full page reload
+            console.log('Salary progress updated:', data);
+        })
+        .catch(error => console.error('Error updating progress:', error));
+}, 30000);
+</script>
+
+<script>
+    // Hide main loading overlay when page is ready
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            document.getElementById('mainLoadingOverlay').classList.add('hidden');
+        }, 500);
+    });
+
+    // Show loading immediately on page start
+    document.addEventListener('DOMContentLoaded', function() {
+        const overlay = document.getElementById('mainLoadingOverlay');
+        if (overlay) {
+            overlay.classList.remove('hidden');
+        }
+    });
+</script>
+
+<script>
+function requestSalaryPayment() {
+    const btn = document.getElementById('salaryRequestBtn');
+    const originalText = btn.innerHTML;
+
+    // Show loading state
+    btn.innerHTML = '<div class="loading-spinner inline-block w-5 h-5 mr-2"></div>Processing...';
+    btn.disabled = true;
+    btn.classList.add('opacity-75');
+
+    // Redirect to request salary payment
+    window.location.href = "{{ url_for('request_salary_payment') }}";
+}
+
+// Add page load performance tracking
+window.addEventListener('load', function() {
+    const loadTime = performance.now();
+    console.log(`Salary dashboard loaded in: ${loadTime.toFixed(1)}ms`);
+});
+</script>
+{% endblock %}

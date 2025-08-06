@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-black">Set Salary Wallet</h1>
+        <p class="text-gray-600">Enter your crypto wallet address for salary payments</p>
+    </header>
+
+    {% if current_user.salary_wallet_address %}
+    <!-- Address Already Set -->
+    <div class="glass-card p-6 rounded-xl text-center">
+        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-check text-white text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-black mb-2">Wallet Address Set</h3>
+        <p class="text-gray-600 text-sm mb-4">Your salary wallet address is already configured and cannot be changed for security reasons.</p>
+        <div class="bg-gray-100 rounded-lg p-3 mb-4">
+            <p class="text-black font-mono text-sm break-all">{{ current_user.salary_wallet_address }}</p>
+        </div>
+        <a href="{{ url_for('salary_dashboard') }}" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg block">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+    {% else %}
+    <!-- Set New Address -->
+    <div class="glass-card p-6 rounded-xl">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-wallet text-white text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-black">Crypto Wallet Address</h3>
+        </div>
+
+        <!-- Important Notice -->
+        <div class="bg-yellow-100 border border-yellow-300 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                <div>
+                    <p class="text-yellow-800 font-medium text-sm">Important Security Notice</p>
+                    <ul class="text-yellow-700 text-xs mt-2 space-y-1">
+                        <li>• Wallet address can only be set ONCE</li>
+                        <li>• Cannot be changed or edited later</li>
+                        <li>• Double-check address before saving</li>
+                        <li>• Only BEP20 (BSC) and TRC20 (TRON) supported</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">
+                        {{ form.network.label }}
+                    </label>
+                    {{ form.network(class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+
+                <div>
+                    <label class="block text-black text-sm font-medium mb-2">
+                        {{ form.wallet_address.label }}
+                    </label>
+                    {{ form.wallet_address(class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500", placeholder="Enter your crypto wallet address") }}
+                    {% if form.wallet_address.errors %}
+                        {% for error in form.wallet_address.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="bg-blue-100 border border-blue-300 rounded-lg p-3">
+                    <p class="text-blue-800 text-xs">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Make sure your wallet address supports USDT on the selected network. Salary payments will be sent directly to this address.
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    {{ form.submit(class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium") }}
+                    <a href="{{ url_for('salary_dashboard') }}" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg block text-center">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-black">Manage Withdrawal #{{ withdrawal.id }}</h1>
+            <p class="text-gray-700">Review and process withdrawal request</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{{ url_for('admin_withdrawals') }}" class="glass-button px-4 py-2 rounded-lg text-black">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Withdrawals
+            </a>
+        </div>
+    </header>
+
+    <div class="grid md:grid-cols-2 gap-8">
+        <!-- Withdrawal Details -->
+        <div class="glass-card rounded-xl p-6">
+            <h3 class="text-xl font-bold text-black mb-4">Withdrawal Details</h3>
+            
+            <!-- User Info -->
+            <div class="mb-6">
+                <h4 class="font-semibold text-black mb-2">User Information</h4>
+                <div class="space-y-2">
+                    <p><span class="text-gray-600">Username:</span> <span class="font-medium text-black">{{ withdrawal.user.username }}</span></p>
+                    <p><span class="text-gray-600">Email:</span> <span class="font-medium text-black">{{ withdrawal.user.email }}</span></p>
+                    <p><span class="text-gray-600">Phone:</span> <span class="font-medium text-black">{{ withdrawal.user.phone_number }}</span></p>
+                    <p><span class="text-gray-600">Balance:</span> <span class="font-medium text-green-600">${{ "%.2f"|format(withdrawal.user.usdt_balance) }}</span></p>
+                    <p><span class="text-gray-600">Total Staked:</span> <span class="font-medium text-blue-600">${{ "%.2f"|format(withdrawal.user.total_staked) }}</span></p>
+                </div>
+            </div>
+
+            <!-- Withdrawal Info -->
+            <div class="mb-6">
+                <h4 class="font-semibold text-black mb-2">Withdrawal Information</h4>
+                <div class="space-y-2">
+                    <p><span class="text-gray-600">Amount:</span> <span class="font-bold text-black">${{ "%.2f"|format(withdrawal.amount) }}</span></p>
+                    <p><span class="text-gray-600">Fee:</span> <span class="font-medium text-red-600">${{ "%.2f"|format(withdrawal.fee_amount or 0) }}</span></p>
+                    <p><span class="text-gray-600">Net Amount:</span> <span class="font-bold text-green-600">${{ "%.2f"|format(withdrawal.net_amount) }}</span></p>
+                    <p><span class="text-gray-600">Network:</span> <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded">{{ withdrawal.network }}</span></p>
+                    <p><span class="text-gray-600">Full Wallet Address:</span></p>
+                    <div class="bg-gray-100 p-3 rounded-lg border">
+                        <p class="font-mono text-sm text-black break-all select-all">{{ withdrawal.wallet_address }}</p>
+                        <button onclick="copyToClipboard('{{ withdrawal.wallet_address }}')" class="text-blue-600 hover:text-blue-800 text-xs mt-1">
+                            <i class="fas fa-copy mr-1"></i>Copy Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status & Dates -->
+            <div>
+                <h4 class="font-semibold text-black mb-2">Status & Timeline</h4>
+                <div class="space-y-2">
+                    <p><span class="text-gray-600">Current Status:</span> 
+                        {% if withdrawal.status == 'pending' %}
+                        <span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">Pending</span>
+                        {% elif withdrawal.status == 'approved' %}
+                        <span class="inline-block px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">Approved</span>
+                        {% elif withdrawal.status == 'rejected' %}
+                        <span class="inline-block px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">Rejected</span>
+                        {% elif withdrawal.status == 'completed' %}
+                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">Completed</span>
+                        {% endif %}
+                    </p>
+                    <p><span class="text-gray-600">Created:</span> <span class="font-medium text-black">{{ withdrawal.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span></p>
+                    {% if withdrawal.processed_at %}
+                    <p><span class="text-gray-600">Processed:</span> <span class="font-medium text-black">{{ withdrawal.processed_at.strftime('%Y-%m-%d %H:%M:%S') }}</span></p>
+                    {% endif %}
+                    {% if withdrawal.completed_at %}
+                    <p><span class="text-gray-600">Completed:</span> <span class="font-medium text-black">{{ withdrawal.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</span></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if withdrawal.admin_notes %}
+            <div class="mt-6 p-4 bg-gray-100 rounded-lg">
+                <h4 class="font-semibold text-black mb-2">Previous Admin Notes</h4>
+                <p class="text-gray-700">{{ withdrawal.admin_notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Management Form -->
+        <div class="glass-card rounded-xl p-6">
+            <h3 class="text-xl font-bold text-black mb-4">Update Status</h3>
+            
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <!-- Status -->
+                <div class="form-group mb-4">
+                    {{ form.status.label(class="block text-sm font-semibold text-black mb-2") }}
+                    {{ form.status(class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black") }}
+                    {% if form.status.errors %}
+                        {% for error in form.status.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Admin Notes -->
+                <div class="form-group mb-4">
+                    {{ form.admin_notes.label(class="block text-sm font-semibold text-black mb-2") }}
+                    {{ form.admin_notes(class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black") }}
+                    {% if form.admin_notes.errors %}
+                        {% for error in form.admin_notes.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Transaction Hash -->
+                <div class="form-group mb-6">
+                    {{ form.transaction_hash.label(class="block text-sm font-semibold text-black mb-2") }}
+                    {{ form.transaction_hash(class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black", placeholder="Enter transaction hash if completed") }}
+                    {% if form.transaction_hash.errors %}
+                        {% for error in form.transaction_hash.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    <p class="text-gray-600 text-sm mt-1">Only required when marking as completed</p>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all">
+                    <i class="fas fa-save mr-2"></i>Update Withdrawal
+                </button>
+            </form>
+
+            <!-- Quick Actions -->
+            <div class="mt-6 space-y-2">
+                <p class="text-sm font-semibold text-black">Quick Actions:</p>
+                {% if withdrawal.status == 'pending' %}
+                <div class="flex space-x-2">
+                    <form method="POST" class="flex-1">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="status" value="approved">
+                        <button type="submit" class="w-full px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded transition-colors" onclick="return confirm('Approve this withdrawal?')">
+                            <i class="fas fa-check mr-1"></i>Approve
+                        </button>
+                    </form>
+                    <form method="POST" class="flex-1">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="status" value="rejected">
+                        <input type="hidden" name="admin_notes" value="Rejected by admin">
+                        <button type="submit" class="w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded transition-colors" onclick="return confirm('Reject this withdrawal? User balance will be refunded.')">
+                            <i class="fas fa-times mr-1"></i>Reject
+                        </button>
+                    </form>
+                </div>
+                {% elif withdrawal.status == 'approved' %}
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <input type="hidden" name="status" value="completed">
+                    <button type="submit" class="w-full px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition-colors" onclick="return confirm('Mark this withdrawal as completed?')">
+                        <i class="fas fa-check-circle mr-1"></i>Mark as Completed
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+        button.classList.add('text-green-600');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('text-green-600');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

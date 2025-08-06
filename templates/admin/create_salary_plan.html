@@ -1,0 +1,101 @@
+{% extends "admin/base_sidebar.html" %}
+
+{% block title %}Create Salary Plan{% endblock %}
+
+{% block content %}
+<div class="create-salary-plan">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Create New Salary Plan</h1>
+        <p class="text-gray-600">Set up referral-based salary plans for users</p>
+    </div>
+    
+    <!-- Form -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <!-- Plan Name -->
+            <div>
+                {{ form.plan_name.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                {{ form.plan_name(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", placeholder="Enter plan name") }}
+                {% if form.plan_name.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {% for error in form.plan_name.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Referrals Required -->
+                <div>
+                    {{ form.referrals_required.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.referrals_required(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", placeholder="Number of referrals required") }}
+                    {% if form.referrals_required.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.referrals_required.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Balance Required -->
+                <div>
+                    {{ form.balance_required.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.balance_required(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", placeholder="Minimum balance required") }}
+                    {% if form.balance_required.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.balance_required.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Monthly Salary -->
+                <div>
+                    {{ form.monthly_salary.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.monthly_salary(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", placeholder="Monthly salary amount") }}
+                    {% if form.monthly_salary.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.monthly_salary.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Active Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <div class="flex items-center mt-4">
+                        {{ form.is_active(class="mr-2") }}
+                        {{ form.is_active.label(class="text-sm text-gray-700") }}
+                    </div>
+                    {% if form.is_active.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.is_active.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('admin_salary_plans') }}" 
+                   class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                    Cancel
+                </a>
+                {{ form.submit(class="btn-primary text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,300 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">{{ title }}</h1>
+            <p class="text-blue-200 mt-2">{% if nft %}Edit NFT details, upload new photos, and manage all properties{% else %}Add a new NFT with photos, blue tick, and complete details{% endif %}</p>
+        </div>
+        <a href="{{ url_for('admin_nfts_enhanced') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Back to NFTs
+        </a>
+    </div>
+
+    <!-- Form -->
+    <div class="admin-card rounded-xl p-8">
+        <form method="POST" enctype="multipart/form-data" id="nftForm">
+            {{ form.hidden_tag() }}
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column - Basic Info -->
+                <div class="space-y-6">
+                    <!-- Collection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-layer-group mr-2"></i>Collection
+                        </label>
+                        {{ form.collection_id(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all") }}
+                        {% if form.collection_id.errors %}
+                            {% for error in form.collection_id.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- NFT Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-tag mr-2"></i>NFT Name
+                        </label>
+                        {{ form.name(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="e.g., Cosmic Dragon #1930") }}
+                        {% if form.name.errors %}
+                            {% for error in form.name.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Price -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-dollar-sign mr-2"></i>Price (USDT)
+                        </label>
+                        {{ form.price(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="250.00", step="0.01") }}
+                        {% if form.price.errors %}
+                            {% for error in form.price.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Last Sale Price -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-history mr-2"></i>Last Sale Price (USDT)
+                        </label>
+                        {{ form.last_sale_price(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="200.00", step="0.01") }}
+                        {% if form.last_sale_price.errors %}
+                            {% for error in form.last_sale_price.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Rarity Stars -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-star mr-2"></i>Rarity (1-5 stars)
+                        </label>
+                        {{ form.rarity_stars(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", min="1", max="5") }}
+                        {% if form.rarity_stars.errors %}
+                            {% for error in form.rarity_stars.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Owner Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-user mr-2"></i>Owner Name
+                        </label>
+                        {{ form.owner_name(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="CryptoCollector92") }}
+                        {% if form.owner_name.errors %}
+                            {% for error in form.owner_name.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Unique ID -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-hashtag mr-2"></i>Unique ID
+                        </label>
+                        {{ form.unique_id(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="1930") }}
+                        {% if form.unique_id.errors %}
+                            {% for error in form.unique_id.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Right Column - Media & Advanced -->
+                <div class="space-y-6">
+                    <!-- Current Image Preview -->
+                    {% if nft and nft.image_url %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Current Image</label>
+                        <div class="relative">
+                            <img src="{{ nft.image_url }}" alt="{{ nft.name }}" class="w-full h-48 object-cover rounded-lg">
+                            {% if nft.has_blue_tick and nft.blue_tick_url %}
+                            <img src="{{ nft.blue_tick_url }}" alt="Verified" class="absolute top-2 right-2 w-6 h-6">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-image mr-2"></i>NFT Image
+                        </label>
+                        {{ form.image_file(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", onchange="previewImage(event)") }}
+                        <p class="text-gray-400 text-xs mt-1">Upload JPG, PNG, GIF, or WebP (max 16MB)</p>
+                        {% if form.image_file.errors %}
+                            {% for error in form.image_file.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Image Preview -->
+                        <div id="imagePreview" class="mt-4 hidden">
+                            <img id="previewImg" class="w-full h-48 object-cover rounded-lg">
+                        </div>
+                    </div>
+
+                    <!-- Image URL (Alternative) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-link mr-2"></i>Or Image URL
+                        </label>
+                        {{ form.image_url(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="https://example.com/nft.jpg") }}
+                        <p class="text-gray-400 text-xs mt-1">Use either file upload or URL, not both</p>
+                        {% if form.image_url.errors %}
+                            {% for error in form.image_url.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Blue Tick -->
+                    <div>
+                        <div class="flex items-center space-x-4 mb-4">
+                            {{ form.has_blue_tick(class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500") }}
+                            <label class="text-sm text-gray-300">
+                                <i class="fas fa-check-circle text-blue-400 mr-2"></i>Verified (Blue Tick)
+                            </label>
+                        </div>
+                        
+                        <!-- Blue Tick PNG Upload -->
+                        <div id="blueTrickUpload" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">
+                                <i class="fas fa-upload mr-2"></i>Blue Tick PNG
+                            </label>
+                            {{ form.blue_tick_file(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all") }}
+                            <p class="text-gray-400 text-xs mt-1">Upload custom blue tick PNG (optional)</p>
+                            {% if form.blue_tick_file.errors %}
+                                {% for error in form.blue_tick_file.errors %}
+                                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-align-left mr-2"></i>Description
+                        </label>
+                        {{ form.description(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", rows="4", placeholder="Describe this NFT...") }}
+                        {% if form.description.errors %}
+                            {% for error in form.description.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Display Order -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-sort-numeric-down mr-2"></i>Display Order
+                        </label>
+                        {{ form.display_order(class="w-full px-4 py-3 bg-black bg-opacity-30 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", placeholder="0") }}
+                        <p class="text-gray-400 text-xs mt-1">Lower numbers appear first</p>
+                        {% if form.display_order.errors %}
+                            {% for error in form.display_order.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Active Status -->
+                    <div>
+                        <div class="flex items-center space-x-4">
+                            {{ form.is_active(class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500") }}
+                            <label class="text-sm text-gray-300">
+                                <i class="fas fa-eye mr-2"></i>Active (visible on marketplace)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8 flex justify-end space-x-4">
+                <a href="{{ url_for('admin_nfts_enhanced') }}" class="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg">
+                    <span class="button-text">
+                        <i class="fas fa-save mr-2"></i>{% if nft %}Update NFT{% else %}Create NFT{% endif %}
+                    </span>
+                    <span class="loading-content hidden">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Processing...
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('nftForm');
+    const blueTrickCheckbox = form.has_blue_tick;
+    const blueTrickUpload = document.getElementById('blueTrickUpload');
+    
+    // Toggle blue tick upload section
+    function toggleBlueTrick() {
+        if (blueTrickCheckbox.checked) {
+            blueTrickUpload.style.display = 'block';
+        } else {
+            blueTrickUpload.style.display = 'none';
+        }
+    }
+    
+    blueTrickCheckbox.addEventListener('change', toggleBlueTrick);
+    toggleBlueTrick(); // Initial check
+    
+    // Form submission with loading state
+    form.addEventListener('submit', function(e) {
+        const button = form.querySelector('button[type="submit"]');
+        const buttonText = button.querySelector('.button-text');
+        const loadingContent = button.querySelector('.loading-content');
+        
+        buttonText.classList.add('hidden');
+        loadingContent.classList.remove('hidden');
+        button.disabled = true;
+    });
+});
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            img.src = e.target.result;
+            preview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+
+<style>
+.admin-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+</style>
+{% endblock %}

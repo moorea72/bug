@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Stake - USDT Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 max-w-4xl">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-black mb-2">Stake Your USDT</h1>
+        <p class="text-gray-600">Earn daily returns on your cryptocurrency investments</p>
+        <div class="mt-4 glass-card p-4 rounded-xl inline-block">
+            <h3 class="text-lg font-semibold text-black">Available Balance</h3>
+            <p class="text-3xl font-bold text-green-600">${{ "%.2f"|format(current_user.usdt_balance) }}</p>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-4 p-4 rounded-lg">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Stake Form -->
+    <div class="glass-card p-6 rounded-xl mb-8">
+        <h3 class="text-xl font-semibold mb-6 text-black">Create New Stake</h3>
+        
+        <form method="POST" action="{{ url_for('stake_simple') }}" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <!-- Coin Selection -->
+            <div>
+                <label class="block text-black text-sm font-medium mb-3">Select Cryptocurrency</label>
+                <div class="grid grid-cols-1 gap-3">
+                    {% for coin in coins %}
+                    <div class="p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-400 transition-all" 
+                         onclick="selectCoin({{ coin.id }}, '{{ coin.symbol }}', '{{ coin.name }}', {{ coin.min_stake }})">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                                    {{ coin.icon_emoji }}
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-black">{{ coin.symbol }}</h4>
+                                    <p class="text-sm text-gray-600">{{ coin.name }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600">Min Stake</p>
+                                <p class="font-semibold text-black">${{ coin.min_stake }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {{ form.coin_id(style="display: none;") }}
+            </div>
+
+            <!-- Plan Selection -->
+            <div id="planSection" style="display: none;">
+                <label class="block text-black text-sm font-medium mb-3">Select Staking Plan</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="plansContainer">
+                    <!-- Plans will be loaded here -->
+                </div>
+                {{ form.plan_id(style="display: none;") }}
+            </div>
+
+            <!-- Amount Input -->
+            <div id="amountSection" style="display: none;">
+                <label class="block text-black text-sm font-medium mb-2">Stake Amount (USDT)</label>
+                {{ form.amount(class="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-black text-lg font-semibold focus:outline-none focus:border-blue-400", placeholder="Enter amount") }}
+                <div class="mt-2 text-sm text-gray-600">
+                    <span>Min: $<span id="minAmount">0</span> | Max: ${{ "%.2f"|format(current_user.usdt_balance) }}</span>
+                </div>
+            </div>
+
+            <!-- Earnings Preview -->
+            <div id="previewSection" style="display: none;" class="glass-card p-4 rounded-xl bg-green-50">
+                <h4 class="text-lg font-semibold text-black mb-3">Earnings Preview</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Stake Amount:</span>
+                        <span class="font-semibold text-black" id="stakeAmount">$0.00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Daily Return:</span>
+                        <span class="font-semibold text-green-600" id="dailyReturn">$0.00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Profit:</span>
+                        <span class="font-semibold text-green-600" id="totalProfit">$0.00</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                        <span class="text-gray-600">Final Amount:</span>
+                        <span class="text-xl font-bold text-green-600" id="finalAmount">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div id="submitSection" style="display: none;">
+                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-4 rounded-xl transition-all duration-300">
+                    <i class="fas fa-rocket mr-2"></i>Start Staking
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Stakes -->
+    <div class="mb-6">
+        <h3 class="text-xl font-semibold mb-4 text-black">Your Active Stakes</h3>
+        {% if user_stakes %}
+            <div class="space-y-4">
+                {% for stake in user_stakes %}
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="text-lg font-bold text-black">{{ stake.coin.symbol }} - {{ stake.coin.name }}</h4>
+                            <p class="text-sm text-gray-600">{{ stake.plan.duration_days }} days at {{ stake.plan.interest_rate }}% daily</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">{{ stake.status.title() }}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">Staked</p>
+                            <p class="font-bold text-black">${{ "%.2f"|format(stake.amount) }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">Daily Return</p>
+                            <p class="font-bold text-green-600">${{ "%.2f"|format(stake.amount * stake.plan.interest_rate / 100) }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">Total Return</p>
+                            <p class="font-bold text-green-600">${{ "%.2f"|format(stake.total_return) }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">End Date</p>
+                            <p class="font-bold text-black">{{ stake.end_date.strftime('%m/%d') }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8 glass-card rounded-xl">
+                <p class="text-gray-600">No active stakes yet. Start your first stake above!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+let selectedCoin = null;
+let selectedPlan = null;
+
+function selectCoin(coinId, symbol, name, minStake) {
+    selectedCoin = { id: coinId, symbol: symbol, name: name, minStake: minStake };
+    
+    // Set form value
+    document.querySelector('input[name="coin_id"]').value = coinId;
+    
+    // Update UI
+    document.getElementById('minAmount').textContent = minStake;
+    
+    // Load plans for this coin
+    loadPlans(coinId);
+    
+    // Show plan section
+    document.getElementById('planSection').style.display = 'block';
+}
+
+function loadPlans(coinId) {
+    const plansContainer = document.getElementById('plansContainer');
+    plansContainer.innerHTML = '<div class="text-center">Loading plans...</div>';
+    
+    // Use the plans data from template
+    const coinPlans = {{ coin_plans|tojson }};
+    const plans = coinPlans[coinId] || [];
+    
+    plansContainer.innerHTML = '';
+    
+    plans.forEach(plan => {
+        const planDiv = document.createElement('div');
+        planDiv.className = 'p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-400 transition-all';
+        planDiv.onclick = () => selectPlan(plan.id, plan.duration_days, plan.interest_rate);
+        
+        planDiv.innerHTML = `
+            <div class="text-center">
+                <h4 class="font-bold text-black">${plan.duration_days} Days</h4>
+                <p class="text-2xl font-bold text-green-600">${plan.interest_rate}%</p>
+                <p class="text-sm text-gray-600">Daily Return</p>
+            </div>
+        `;
+        
+        plansContainer.appendChild(planDiv);
+    });
+}
+
+function selectPlan(planId, duration, rate) {
+    selectedPlan = { id: planId, duration: duration, rate: rate };
+    
+    // Set form value
+    document.querySelector('input[name="plan_id"]').value = planId;
+    
+    // Show amount section
+    document.getElementById('amountSection').style.display = 'block';
+    document.getElementById('submitSection').style.display = 'block';
+    
+    // Add event listener for amount input
+    const amountInput = document.querySelector('input[name="amount"]');
+    amountInput.addEventListener('input', updatePreview);
+    
+    updatePreview();
+}
+
+function updatePreview() {
+    if (!selectedCoin || !selectedPlan) return;
+    
+    const amount = parseFloat(document.querySelector('input[name="amount"]').value) || 0;
+    
+    if (amount >= selectedCoin.minStake) {
+        const dailyReturn = amount * (selectedPlan.rate / 100);
+        const totalProfit = dailyReturn * selectedPlan.duration;
+        const finalAmount = amount + totalProfit;
+        
+        document.getElementById('stakeAmount').textContent = `$${amount.toFixed(2)}`;
+        document.getElementById('dailyReturn').textContent = `$${dailyReturn.toFixed(2)}`;
+        document.getElementById('totalProfit').textContent = `$${totalProfit.toFixed(2)}`;
+        document.getElementById('finalAmount').textContent = `$${finalAmount.toFixed(2)}`;
+        
+        document.getElementById('previewSection').style.display = 'block';
+    } else {
+        document.getElementById('previewSection').style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

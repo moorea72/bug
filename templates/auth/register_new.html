@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - USDT Staking Platform</title>
+  <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Poppins&display=swap'>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-auth.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/acrobatic-loading.css') }}">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="login_box">
+      <div class="login-header">
+        <span>Register</span>
+      </div>
+
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="input_box">
+          {{ form.username(class="input-field", id="username", required=True) }}
+          <label for="username" class="label">Username</label>
+          <i class="bx bx-user icon"></i>
+          {% if form.username.errors %}
+            {% for error in form.username.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="input_box">
+          {{ form.email(class="input-field", id="email", required=True) }}
+          <label for="email" class="label">Email Address</label>
+          <i class="bx bx-envelope icon"></i>
+          {% if form.email.errors %}
+            {% for error in form.email.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="input_box">
+          {{ form.phone_number(class="input-field", id="phone", required=True) }}
+          <label for="phone" class="label">Phone Number</label>
+          <i class="bx bx-phone icon"></i>
+          {% if form.phone_number.errors %}
+            {% for error in form.phone_number.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="input_box">
+          {{ form.password(class="input-field", id="password", required=True) }}
+          <label for="password" class="label">Password</label>
+          <i class="bx bx-lock-alt icon"></i>
+          {% if form.password.errors %}
+            {% for error in form.password.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="input_box">
+          {{ form.password2(class="input-field", id="password2", required=True) }}
+          <label for="password2" class="label">Confirm Password</label>
+          <i class="bx bx-lock-alt icon"></i>
+          {% if form.password2.errors %}
+            {% for error in form.password2.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="input_box">
+          {{ form.referral_code(class="input-field", id="referral") }}
+          <label for="referral" class="label">Referral Code (Optional)</label>
+          <i class="bx bx-gift icon"></i>
+          {% if form.referral_code.errors %}
+            {% for error in form.referral_code.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="input_box">
+          <input type="submit" class="input-submit" value="Create Account">
+        </div>
+      </form>
+
+      <div class="register">
+        <span>Already have an account? <a href="{{ url_for('login') }}">Login</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <script>
+    // Auto-hide flash messages after 3 seconds
+    setTimeout(function() {
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(function(msg) {
+        msg.style.opacity = '0';
+        msg.style.transform = 'translateX(100%)';
+        setTimeout(function() {
+          msg.remove();
+        }, 300);
+      });
+    }, 3000);
+  </script>
+</body>
+</html>

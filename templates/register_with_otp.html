@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}Register - USDT Staking Platform{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="mx-auto h-12 w-12 text-center">
+                <span class="text-4xl">🔐</span>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-black">
+                Create Your Account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Join the USDT Staking Platform with phone verification
+            </p>
+        </div>
+
+        <form class="mt-8 space-y-6" method="POST" action="{{ url_for('register') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="rounded-md shadow-sm -space-y-px">
+                <!-- Username -->
+                <div class="relative">
+                    {{ form.username.label(class="sr-only") }}
+                    {{ form.username(class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Username") }}
+                    {% if form.username.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.username.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="relative">
+                    {{ form.email.label(class="sr-only") }}
+                    {{ form.email(class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Email address") }}
+                    {% if form.email.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.email.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Phone Number with OTP -->
+                <div class="relative">
+                    {{ form.phone_number.label(class="sr-only") }}
+                    <div class="flex">
+                        {{ form.phone_number(class="flex-1 block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Phone number (+91XXXXXXXXXX)", id="phone_number") }}
+                        <button type="button" id="send-otp-btn" class="ml-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md">
+                            Send OTP
+                        </button>
+                    </div>
+                    {% if form.phone_number.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.phone_number.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- OTP Input -->
+                <div class="relative">
+                    {{ form.otp.label(class="sr-only") }}
+                    <div class="flex">
+                        {{ form.otp(class="flex-1 block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Enter OTP", disabled=True, id="otp") }}
+                        <button type="button" id="verify-otp-btn" class="ml-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-md" disabled>
+                            Verify
+                        </button>
+                    </div>
+                    {% if form.otp.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.otp.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="relative">
+                    {{ form.password.label(class="sr-only") }}
+                    {{ form.password(class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Password") }}
+                    {% if form.password.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.password.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="relative">
+                    {{ form.confirm_password.label(class="sr-only") }}
+                    {{ form.confirm_password(class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Confirm Password") }}
+                    {% if form.confirm_password.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.confirm_password.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Referral Code -->
+                <div class="relative">
+                    {{ form.referral_code.label(class="sr-only") }}
+                    {{ form.referral_code(class="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm", placeholder="Referral Code (Optional)") }}
+                    {% if form.referral_code.errors %}
+                        <div class="text-red-500 text-xs mt-1">{{ form.referral_code.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Hidden field for OTP verification status -->
+            {{ form.otp_verified(id="otp_verified") }}
+
+            <div>
+                {{ form.submit(class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500") }}
+            </div>
+
+            <div class="text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+class OTPManager {
+    constructor() {
+        this.phoneInput = document.getElementById('phone_number');
+        this.otpInput = document.getElementById('otp');
+        this.sendButton = document.getElementById('send-otp-btn');
+        this.verifyButton = document.getElementById('verify-otp-btn');
+        this.hiddenInput = document.getElementById('otp_verified');
+        
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        this.sendButton.addEventListener('click', () => this.sendOTP());
+        this.verifyButton.addEventListener('click', () => this.verifyOTP());
+    }
+
+    async sendOTP() {
+        const phone = this.phoneInput.value;
+        
+        if (!phone) {
+            alert('Please enter a phone number');
+            return;
+        }
+
+        this.showButtonLoading(this.sendButton, 'Sending...');
+
+        try {
+            const response = await fetch('/send-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone_number: phone })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showSuccess('OTP sent successfully!');
+                this.enableOTPInput();
+                this.startCountdown();
+            } else {
+                this.showError(data.message || 'Failed to send OTP');
+            }
+        } catch (error) {
+            this.showError('Error sending OTP. Please try again.');
+        }
+
+        this.hideButtonLoading(this.sendButton);
+    }
+
+    async verifyOTP() {
+        const phone = this.phoneInput.value;
+        const otp = this.otpInput.value;
+
+        if (!phone || !otp) {
+            alert('Please enter both phone number and OTP');
+            return;
+        }
+
+        this.showButtonLoading(this.verifyButton, 'Verifying...');
+
+        try {
+            const response = await fetch('/verify-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone_number: phone, otp: otp })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showSuccess('✓ Phone number verified successfully!');
+                this.markAsVerified();
+                this.disableOTPInputs();
+            } else {
+                this.showError(data.message || 'Invalid OTP');
+            }
+        } catch (error) {
+            this.showError('Error verifying OTP. Please try again.');
+        }
+
+        this.hideButtonLoading(this.verifyButton);
+    }
+
+    enableOTPInput() {
+        this.otpInput.disabled = false;
+        this.otpInput.focus();
+        this.verifyButton.disabled = false;
+    }
+
+    disableOTPInputs() {
+        this.otpInput.disabled = true;
+        this.verifyButton.disabled = true;
+        this.sendButton.disabled = true;
+        this.phoneInput.disabled = true;
+    }
+
+    markAsVerified() {
+        this.hiddenInput.value = 'true';
+        
+        // Show success indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'text-green-600 text-sm mt-2 text-center';
+        indicator.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Phone number verified - You can now register';
+        
+        const container = this.otpInput.parentElement.parentElement;
+        container.appendChild(indicator);
+    }
+
+    startCountdown() {
+        let seconds = 60;
+        const originalText = this.sendButton.textContent;
+        
+        const interval = setInterval(() => {
+            this.sendButton.textContent = `Resend (${seconds}s)`;
+            this.sendButton.disabled = true;
+            
+            seconds--;
+            
+            if (seconds < 0) {
+                clearInterval(interval);
+                this.sendButton.textContent = originalText;
+                this.sendButton.disabled = false;
+            }
+        }, 1000);
+    }
+
+    showButtonLoading(button, text) {
+        button.disabled = true;
+        button.innerHTML = `<span class="loading-spinner inline-block w-4 h-4 mr-2"></span>${text}`;
+    }
+
+    hideButtonLoading(button) {
+        button.disabled = false;
+        button.innerHTML = button.textContent;
+    }
+
+    showSuccess(message) {
+        this.showMessage(message, 'success');
+    }
+
+    showError(message) {
+        this.showMessage(message, 'error');
+    }
+
+    showMessage(message, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `alert alert-${type} mt-3 p-3 rounded-md text-center`;
+        messageDiv.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
+        messageDiv.style.color = 'white';
+        messageDiv.textContent = message;
+        
+        const container = this.phoneInput.parentElement.parentElement;
+        
+        // Remove existing messages
+        const existingMessages = container.querySelectorAll('.alert');
+        existingMessages.forEach(msg => msg.remove());
+        
+        container.appendChild(messageDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 5000);
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.otpManager === 'undefined') {
+        window.otpManager = new OTPManager();
+    }
+});
+</script>
+{% endblock %}

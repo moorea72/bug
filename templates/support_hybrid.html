@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-black mb-4">Support Center</h1>
+            <p class="text-gray-600">Choose between AI instant help or human support</p>
+        </div>
+
+        <!-- Support Type Selection -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="glass-card p-6 rounded-xl cursor-pointer hover:scale-105 transition-transform" onclick="showAISupport()">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-robot text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-black mb-2">AI Support</h3>
+                    <p class="text-gray-600">Get instant answers about your account, salary, referrals, and stakes</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl cursor-pointer hover:scale-105 transition-transform" onclick="showHumanSupport()">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-headset text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-black mb-2">Human Support</h3>
+                    <p class="text-gray-600">Submit a ticket for complex issues that need human assistance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Support Section -->
+        <div id="aiSupport" class="glass-card p-6 rounded-xl mb-6" style="display: none;">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-robot text-blue-500 text-2xl mr-3"></i>
+                <h3 class="text-xl font-bold text-black">AI Assistant</h3>
+            </div>
+            
+            <div id="aiChatContainer" class="bg-gray-50 rounded-lg p-4 mb-4" style="height: 400px; overflow-y: auto;">
+                <div class="ai-message mb-4">
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <p class="text-black">👋 Hello! I'm your AI assistant. I can help you with:</p>
+                        <ul class="text-black mt-2 ml-4 list-disc">
+                            <li>Salary eligibility and plans</li>
+                            <li>Referral commission details</li>
+                            <li>Stake information and earnings</li>
+                            <li>Account balance and portfolio</li>
+                        </ul>
+                        <p class="text-black mt-2"><strong>Try asking:</strong> "What's my salary status?" or "Show my stake details"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <input type="text" id="aiMessageInput" placeholder="Ask me anything about your account..." class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-white text-black">
+                <button onclick="sendAIMessage()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Human Support Section -->
+        <div id="humanSupport" class="glass-card p-6 rounded-xl mb-6" style="display: none;">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-headset text-green-500 text-2xl mr-3"></i>
+                <h3 class="text-xl font-bold text-black">Human Support Ticket</h3>
+            </div>
+            
+            <form id="ticketForm" method="POST" action="{{ url_for('submit_support_ticket') }}">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-black font-medium mb-2">Problem Type</label>
+                        <select name="problem_type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500 bg-white text-black">
+                            <option value="account">Account Issue</option>
+                            <option value="deposit">Deposit Problem</option>
+                            <option value="withdrawal">Withdrawal Problem</option>
+                            <option value="staking">Staking Issue</option>
+                            <option value="referral">Referral Issue</option>
+                            <option value="salary">Salary Issue</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-black font-medium mb-2">Priority</label>
+                        <select name="priority" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500 bg-white text-black">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-black font-medium mb-2">Subject</label>
+                    <input type="text" name="subject" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500 bg-white text-black">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-black font-medium mb-2">Message</label>
+                    <textarea name="message" required rows="6" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500 bg-white text-black"></textarea>
+                </div>
+                
+                <div class="text-center">
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAISupport() {
+    document.getElementById('aiSupport').style.display = 'block';
+    document.getElementById('humanSupport').style.display = 'none';
+}
+
+function showHumanSupport() {
+    document.getElementById('aiSupport').style.display = 'none';
+    document.getElementById('humanSupport').style.display = 'block';
+}
+
+function sendAIMessage() {
+    const input = document.getElementById('aiMessageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message
+    addAIMessage('user', message);
+    input.value = '';
+    
+    // Send to AI
+    fetch('/api/ai-support', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        addAIMessage('ai', data.response);
+    })
+    .catch(error => {
+        addAIMessage('ai', 'Sorry, I encountered an error. Please try again or use human support.');
+    });
+}
+
+function addAIMessage(sender, message) {
+    const container = document.getElementById('aiChatContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `${sender}-message mb-4`;
+    
+    const bubble = document.createElement('div');
+    bubble.className = sender === 'user' 
+        ? 'bg-blue-500 text-white p-3 rounded-lg ml-auto max-w-xs text-right'
+        : 'bg-gray-200 text-black p-3 rounded-lg max-w-xs';
+    bubble.innerHTML = message;
+    
+    messageDiv.appendChild(bubble);
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+// Allow Enter key to send message
+document.getElementById('aiMessageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendAIMessage();
+    }
+});
+</script>
+                        <select name="problem_type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500">
+                            <option value="account">Account Issues</option>
+                            <option value="staking">Staking Problems</option>
+                            <option value="deposits">Deposit Issues</option>
+                            <option value="withdrawals">Withdrawal Problems</option>
+                            <option value="technical">Technical Issues</option>
+                            <option value="general">General Question</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-black font-medium mb-2">Priority</label>
+                        <select name="priority" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500">
+                            <option value="low">Low</option>
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-black font-medium mb-2">Subject</label>
+                    <input type="text" name="subject" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500" placeholder="Brief description of your issue">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-black font-medium mb-2">Message</label>
+                    <textarea name="message" required rows="6" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500" placeholder="Please describe your issue in detail..."></textarea>
+                </div>
+                
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-ticket-alt mr-2"></i>Submit Ticket
+                </button>
+            </form>
+        </div>
+
+        <!-- My Tickets Section -->
+        <div class="glass-card p-6 rounded-xl">
+            <h3 class="text-xl font-bold text-black mb-4">My Support Tickets</h3>
+            
+            {% if tickets %}
+                <div class="space-y-4">
+                    {% for ticket in tickets %}
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold text-black">{{ ticket.subject }}</h4>
+                                    <p class="text-sm text-gray-600">{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <span class="px-2 py-1 rounded-full text-xs {% if ticket.priority == 'urgent' %}bg-red-100 text-red-800{% elif ticket.priority == 'high' %}bg-orange-100 text-orange-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                        {{ ticket.priority.title() }}
+                                    </span>
+                                    <span class="px-2 py-1 rounded-full text-xs {% if ticket.status == 'open' %}bg-yellow-100 text-yellow-800{% elif ticket.status == 'replied' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ ticket.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-gray-700 mb-2">{{ ticket.message }}</p>
+                            
+                            {% if ticket.admin_reply %}
+                                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mt-3">
+                                    <p class="text-sm font-medium text-blue-800">Admin Response:</p>
+                                    <p class="text-blue-700">{{ ticket.admin_reply }}</p>
+                                    <p class="text-xs text-blue-600 mt-1">{{ ticket.replied_at.strftime('%Y-%m-%d %H:%M') if ticket.replied_at else '' }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center py-8">You haven't submitted any support tickets yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function showAISupport() {
+    document.getElementById('aiSupport').style.display = 'block';
+    document.getElementById('humanSupport').style.display = 'none';
+}
+
+function showHumanSupport() {
+    document.getElementById('aiSupport').style.display = 'none';
+    document.getElementById('humanSupport').style.display = 'block';
+}
+
+function sendAIMessage() {
+    const input = document.getElementById('aiMessageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    const chatContainer = document.getElementById('aiChatContainer');
+    const userMessageDiv = document.createElement('div');
+    userMessageDiv.className = 'user-message mb-4 text-right';
+    userMessageDiv.innerHTML = `
+        <div class="bg-gray-200 p-3 rounded-lg inline-block max-w-xs">
+            <p class="text-black">${message}</p>
+        </div>
+    `;
+    chatContainer.appendChild(userMessageDiv);
+    
+    // Clear input
+    input.value = '';
+    
+    // Send to AI
+    fetch('/api/ai-support', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'ai-message mb-4';
+        aiMessageDiv.innerHTML = `
+            <div class="bg-blue-100 p-3 rounded-lg">
+                ${data.response}
+            </div>
+        `;
+        chatContainer.appendChild(aiMessageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+    
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Allow Enter key to send message
+document.getElementById('aiMessageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendAIMessage();
+    }
+});
+</script>
+{% endblock %}

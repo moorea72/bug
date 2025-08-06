@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - USDT Staking Platform</title>
+    
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Acrobatic Loading Animation -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/acrobatic-loading.css') }}">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .glow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 glow">
+                <i class="fas fa-shield-alt text-white text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent mb-2">
+                Admin Access
+            </h1>
+            <p class="text-gray-300">Secure admin panel login</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="glass-card p-8 rounded-2xl">
+            <form method="POST" id="adminLoginForm">
+                {{ form.hidden_tag() }}
+                
+                <!-- Email Field -->
+                <div class="mb-6">
+                    <label class="block text-white text-sm font-medium mb-2">
+                        <i class="fas fa-user-shield mr-2"></i>Admin Email
+                    </label>
+                    {{ form.email(class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500", placeholder="Enter admin email") }}
+                    {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                            <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-6">
+                    <label class="block text-white text-sm font-medium mb-2">
+                        <i class="fas fa-key mr-2"></i>Admin Password
+                    </label>
+                    {{ form.password(class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500", placeholder="Enter admin password") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-red-600 hover:to-orange-600 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                    <span class="button-text">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Access Admin Panel
+                    </span>
+                    <span class="loading-content hidden">
+                        <div class="loading-spinner inline-block mr-2"></div>
+                        Authenticating...
+                    </span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 space-y-2">
+                    {% for category, message in messages %}
+                        <div class="glass-card p-4 rounded-lg {% if category == 'error' %}border-red-500 bg-red-500/10{% else %}border-green-500 bg-green-500/10{% endif %}">
+                            <p class="text-sm {% if category == 'error' %}text-red-400{% else %}text-green-400{% endif %}">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Back to Login -->
+        <div class="text-center mt-6">
+            <a href="{{ url_for('login') }}" class="text-white/70 hover:text-white transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to User Login
+            </a>
+        </div>
+    </div>
+
+    <!-- Loading handled by global acrobatic-loading.js -->
+    <script>
+        // Note: Loading animation is handled globally by acrobatic-loading.js
+    </script>
+</body>
+</html>

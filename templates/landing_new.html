@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tether - Premium USDT Staking Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #DDA0DD 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .logo-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-pulse-custom {
+            animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-custom {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .7; }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-counter {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #667eea;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .social-link {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .text-dark {
+            color: #2d3748 !important;
+        }
+
+        .text-dark-gray {
+            color: #4a5568 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen">
+        <!-- Header with Logo -->
+        <header class="container mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div class="logo-container animate-float">
+                    <h1 class="text-2xl font-bold text-white">
+                        <i class="fas fa-coins mr-2"></i>Tether
+                    </h1>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('login') }}" class="btn-premium">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn-premium">
+                        <i class="fas fa-user-plus mr-2"></i>Register
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Welcome Section -->
+        <section class="container mx-auto px-4 py-16 text-center">
+            <div class="fade-in">
+                <h2 class="text-5xl font-bold text-dark mb-6">
+                    Welcome to the Future of 
+                    <span class="animate-pulse-custom text-purple-600">Crypto Staking</span>
+                </h2>
+                <p class="text-xl text-dark-gray mb-8 max-w-3xl mx-auto">
+                    Join thousands of investors earning passive income through our premium USDT staking platform. 
+                    Experience the power of decentralized finance with guaranteed returns and secure transactions.
+                </p>
+                
+                <!-- Call to Action Buttons -->
+                <div class="flex justify-center items-center space-x-6 mb-12">
+                    <a href="{{ url_for('register') }}" class="btn-premium text-lg px-8 py-4">
+                        <i class="fas fa-rocket mr-2"></i>Start Earning Today
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn-premium text-lg px-8 py-4">
+                        <i class="fas fa-chart-line mr-2"></i>View Portfolio
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Stats Section -->
+        <section class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass-card p-6 text-center">
+                    <div class="stats-counter">$2.4M+</div>
+                    <p class="text-dark-gray font-medium">Total Staked</p>
+                </div>
+                <div class="glass-card p-6 text-center">
+                    <div class="stats-counter">15,000+</div>
+                    <p class="text-dark-gray font-medium">Active Users</p>
+                </div>
+                <div class="glass-card p-6 text-center">
+                    <div class="stats-counter">1.9%+</div>
+                    <p class="text-dark-gray font-medium">Daily Returns</p>
+                </div>
+                <div class="glass-card p-6 text-center">
+                    <div class="stats-counter">24/7</div>
+                    <p class="text-dark-gray font-medium">Support</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Choose Us Section -->
+        <section class="container mx-auto px-4 py-16">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-bold text-dark mb-4">Why Choose Tether Platform?</h3>
+                <p class="text-xl text-dark-gray">Experience the best in crypto staking with our premium features</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shield-alt text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-dark mb-3">Secure Staking</h4>
+                        <p class="text-dark-gray">
+                            Bank-grade security with blockchain verification. Your funds are protected with 
+                            multi-layer encryption and secure wallet management.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-dark mb-3">High Returns</h4>
+                        <p class="text-dark-gray">
+                            Earn up to 1.9%+ daily returns with our flexible staking plans. 
+                            Choose from 7 to 180-day terms that suit your investment strategy.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-coins text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-dark mb-3">Multiple Coins</h4>
+                        <p class="text-dark-gray">
+                            Stake USDT, BTC, ETH, BNB, and more. Diversify your portfolio 
+                            across multiple cryptocurrencies for maximum returns.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-gem text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-dark mb-3">NFT Marketplace</h4>
+                        <p class="text-dark-gray">
+                            Exclusive NFT marketplace launching in 2026! Get early access to premium 
+                            digital collections and trading features.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-exchange-alt text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-dark mb-3">Daily Trading</h4>
+                        <p class="text-dark-gray">
+                            Participate in 2 daily trades with 1.9%+ guaranteed returns per trade. 
+                            Maximize your earnings with our professional trading system.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-pink-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-dark mb-3">Referral System</h4>
+                        <p class="text-dark-gray">
+                            Earn extra income by referring friends. Get bonuses, reduced fees, 
+                            and monthly salaries based on your referral performance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section class="container mx-auto px-4 py-16">
+            <div class="glass-card p-12">
+                <div class="text-center mb-12">
+                    <h3 class="text-4xl font-bold text-dark mb-4">About Tether Platform</h3>
+                    <p class="text-xl text-dark-gray">Building the future of decentralized finance</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h4 class="text-2xl font-bold text-dark mb-6">Our Mission</h4>
+                        <p class="text-dark-gray mb-6">
+                            At Tether Platform, we're revolutionizing the way people interact with cryptocurrency. 
+                            Our mission is to provide a secure, user-friendly platform that makes crypto staking 
+                            accessible to everyone, from beginners to experienced investors.
+                        </p>
+                        <p class="text-dark-gray mb-6">
+                            With advanced blockchain technology and real-time verification systems, we ensure 
+                            that every transaction is secure and transparent. Our platform has helped thousands 
+                            of users earn passive income through smart staking strategies.
+                        </p>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                            <span class="text-dark-gray">Licensed and Regulated Platform</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div class="stats-counter">99.9%</div>
+                                <p class="text-dark-gray">Uptime</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="stats-counter">3+</div>
+                                <p class="text-dark-gray">Years</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="stats-counter">50+</div>
+                                <p class="text-dark-gray">Countries</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="stats-counter">24/7</div>
+                                <p class="text-dark-gray">Support</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Media Links -->
+        <section class="container mx-auto px-4 py-12">
+            <div class="text-center">
+                <h3 class="text-3xl font-bold text-dark mb-8">Connect With Us</h3>
+                <div class="flex justify-center items-center">
+                    <a href="#" class="social-link">
+                        <i class="fab fa-twitter text-dark text-xl"></i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-facebook-f text-dark text-xl"></i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-instagram text-dark text-xl"></i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-telegram text-dark text-xl"></i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-discord text-dark text-xl"></i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-youtube text-dark text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="container mx-auto px-4 py-8 text-center">
+            <div class="glass-card p-6">
+                <p class="text-dark-gray">
+                    © 2025 Tether Platform. All rights reserved. 
+                    <span class="font-semibold">Secure • Transparent • Profitable</span>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Add smooth scrolling and animation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats counters
+            const counters = document.querySelectorAll('.stats-counter');
+            counters.forEach(counter => {
+                counter.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                    this.style.transition = 'transform 0.3s ease';
+                });
+                
+                counter.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // Add loading animations
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in');
+            });
+        });
+    </script>
+</body>
+</html>

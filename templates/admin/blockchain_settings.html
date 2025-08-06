@@ -1,0 +1,98 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Blockchain API Settings{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center mb-6">
+            <a href="{{ url_for('admin_payment_addresses') }}" class="text-blue-600 hover:text-blue-800 mr-4">
+                <i class="fas fa-arrow-left"></i> Back to Payment Addresses
+            </a>
+            <h2 class="text-2xl font-bold text-gray-800">Blockchain API Settings</h2>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <!-- Primary Moralis Settings -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-800 mb-4">
+                    <i class="fas fa-link mr-2"></i>Moralis API Configuration
+                </h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        {{ form.moralis_api_key.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                        {{ form.moralis_api_key(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="Enter your Moralis API key") }}
+                        {% if form.moralis_api_key.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.moralis_api_key.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="text-gray-500 text-sm mt-1">Used for blockchain transaction verification</p>
+                    </div>
+                    
+                    <div>
+                        {{ form.moralis_api_url.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                        {{ form.moralis_api_url(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="https://deep-index.moralis.io/api/v2.2") }}
+                        {% if form.moralis_api_url.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.moralis_api_url.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="text-gray-500 text-sm mt-1">Moralis API endpoint URL</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optional BSCScan Settings -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-yellow-800 mb-4">
+                    <i class="fas fa-search mr-2"></i>BSCScan API (Optional)
+                </h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        {{ form.bscscan_api_key.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                        {{ form.bscscan_api_key(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="Enter BSCScan API key (optional)") }}
+                        {% if form.bscscan_api_key.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.bscscan_api_key.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="text-gray-500 text-sm mt-1">Additional verification for BSC transactions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Information -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-800 mb-4">
+                    <i class="fas fa-info-circle mr-2"></i>API Information
+                </h3>
+                <div class="text-sm text-gray-700 space-y-2">
+                    <p>• Get your Moralis API keys from <a href="https://admin.moralis.io" target="_blank" class="text-blue-600 hover:underline">admin.moralis.io</a></p>
+                    <p>• BEP20 API is used for Binance Smart Chain USDT transactions</p>
+                    <p>• TRC20 API is used for Tron USDT transactions</p>
+                    <p>• Both APIs support real-time transaction verification</p>
+                    <p>• Leave API URLs as default unless using custom endpoints</p>
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                {{ form.submit(class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors") }}
+                <a href="{{ url_for('admin_payment_addresses') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

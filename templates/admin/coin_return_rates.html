@@ -1,0 +1,102 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Coin Return Rates - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Individual Coin Return Rates</h1>
+            <p class="text-blue-200 mt-2">Each coin has completely separate return rates</p>
+        </div>
+        <a href="{{ url_for('admin_dashboard') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Important Notice -->
+    <div class="bg-blue-900 bg-opacity-50 border border-blue-400 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-info-circle text-blue-300 mr-3 text-xl"></i>
+            <div>
+                <h3 class="text-blue-200 font-semibold">Coin Separation System Active</h3>
+                <p class="text-blue-300 text-sm">✅ Each coin has independent return rates. Changing one coin will NOT affect others.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coins Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for coin in coins %}
+        <div class="admin-card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    {% if coin.logo_url %}
+                        <img src="{{ coin.logo_url }}" alt="{{ coin.symbol }}" class="w-10 h-10 rounded-full object-cover">
+                    {% else %}
+                        <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">{{ coin.icon_emoji or get_crypto_icon(coin.symbol) }}</span>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">{{ coin.name }}</h3>
+                        <p class="text-sm text-blue-200">{{ coin.symbol }}</p>
+                    </div>
+                </div>
+                <span class="px-2 py-1 bg-green-500 bg-opacity-20 text-green-300 rounded-full text-xs">
+                    Min: ${{ coin.min_stake }}
+                </span>
+            </div>
+
+            <!-- Return Rates Display -->
+            <div class="space-y-2 mb-4">
+                <h4 class="text-sm font-medium text-blue-200">Current Rates:</h4>
+                {% set rates = coin_plans.get(coin.id, {}) %}
+                
+                {% if rates %}
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    {% for duration, rate in rates.items() %}
+                    <div class="bg-black bg-opacity-20 p-2 rounded">
+                        <span class="text-gray-300">{{ duration }} Days:</span>
+                        <span class="text-green-300 float-right">{{ rate }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="bg-black bg-opacity-20 p-3 rounded text-center">
+                    <span class="text-gray-400 text-sm">No return rates set</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Edit Button -->
+            <a href="{{ url_for('admin_edit_coin_return_rates', coin_id=coin.id) }}" 
+               class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-center transition-colors block">
+                <i class="fas fa-edit mr-2"></i>Edit Rates
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not coins %}
+    <div class="admin-card rounded-xl p-8 text-center">
+        <i class="fas fa-coins text-4xl text-gray-400 mb-4"></i>
+        <h3 class="text-xl font-semibold text-white mb-2">No Coins Found</h3>
+        <p class="text-gray-300 mb-4">Please add coins first to manage their return rates.</p>
+        <a href="{{ url_for('admin_coins') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+            <i class="fas fa-plus mr-2"></i>Add Coins
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.admin-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+</style>
+{% endblock %}

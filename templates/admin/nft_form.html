@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-2xl">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-white">{{ title }}</h1>
+        <a href="{{ url_for('admin_nfts') }}" class="glass-button px-4 py-2 rounded-lg text-white">
+            <i class="fas fa-arrow-left mr-2"></i>Back to NFTs
+        </a>
+    </div>
+
+    <div class="glass-card p-6 rounded-xl">
+        <form method="POST" class="space-y-4">
+            {{ form.hidden_tag() }}
+            
+            <div>
+                <label class="block text-white font-medium mb-2">NFT Name</label>
+                {{ form.name(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+            </div>
+
+            <div>
+                <label class="block text-white font-medium mb-2">Collection</label>
+                {{ form.collection_id(class="form-select w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+            </div>
+
+            <div>
+                <label class="block text-white font-medium mb-2">Icon Emoji</label>
+                {{ form.icon(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500", placeholder="🐉") }}
+            </div>
+
+            <div>
+                <label class="block text-white font-medium mb-2">Image URL</label>
+                {{ form.image_url(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+            </div>
+
+            <div>
+                <label class="block text-white font-medium mb-2">CSS Gradient</label>
+                {{ form.gradient(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500", placeholder="from-purple-600 to-pink-600") }}
+                <p class="text-gray-400 text-sm mt-1">Use Tailwind CSS gradient classes</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-white font-medium mb-2">Price (USDT)</label>
+                    {{ form.price(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+
+                <div>
+                    <label class="block text-white font-medium mb-2">Last Sale Price</label>
+                    {{ form.last_sale_price(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-white font-medium mb-2">Rarity (1-5 stars)</label>
+                    {{ form.rarity(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+
+                <div>
+                    <label class="block text-white font-medium mb-2">Owner Name</label>
+                    {{ form.owner_name(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-white font-medium mb-2">Unique ID</label>
+                    {{ form.unique_id(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+
+                <div>
+                    <label class="block text-white font-medium mb-2">Display Order</label>
+                    {{ form.display_order(class="form-input w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex items-center space-x-2">
+                    {{ form.is_verified(class="w-4 h-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500") }}
+                    <label class="text-white font-medium">Verified (Blue Tick)</label>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    {{ form.is_active(class="w-4 h-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500") }}
+                    <label class="text-white font-medium">Active</label>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('admin_nfts') }}" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Cancel</a>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+.glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

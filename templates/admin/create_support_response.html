@@ -1,0 +1,102 @@
+{% extends "admin/base_sidebar.html" %}
+
+{% block title %}Create Support Response{% endblock %}
+
+{% block content %}
+<div class="create-support-response">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Create New AI Support Response</h1>
+        <p class="text-gray-600">Add automated responses for the support chat system</p>
+    </div>
+    
+    <!-- Form -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <!-- Trigger Words -->
+            <div>
+                {{ form.trigger_words.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                {{ form.trigger_words(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", placeholder="balance, deposit, withdrawal, stake") }}
+                <p class="text-sm text-gray-500 mt-1">Enter keywords separated by commas. When users mention these words, this response will be shown.</p>
+                {% if form.trigger_words.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {% for error in form.trigger_words.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Response Text -->
+            <div>
+                {{ form.response_text.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                {{ form.response_text(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", rows="5", placeholder="Enter the response that users will see...") }}
+                <p class="text-sm text-gray-500 mt-1">You can use HTML formatting in the response text.</p>
+                {% if form.response_text.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {% for error in form.response_text.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Category -->
+                <div>
+                    {{ form.category.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.category(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent") }}
+                    {% if form.category.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.category.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Priority -->
+                <div>
+                    {{ form.priority.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+                    {{ form.priority(class="form-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent", placeholder="Higher number = higher priority") }}
+                    <p class="text-sm text-gray-500 mt-1">Higher priority responses are checked first</p>
+                    {% if form.priority.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.priority.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Active Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <div class="flex items-center mt-4">
+                        {{ form.is_active(class="mr-2") }}
+                        {{ form.is_active.label(class="text-sm text-gray-700") }}
+                    </div>
+                    {% if form.is_active.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.is_active.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('admin_support_responses') }}" 
+                   class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                    Cancel
+                </a>
+                {{ form.submit(class="btn-primary text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

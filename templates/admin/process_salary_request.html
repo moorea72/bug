@@ -1,0 +1,204 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Process Salary Request - Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-black">Process Salary Request</h1>
+                <p class="text-gray-600">Review and approve/reject salary withdrawal</p>
+            </div>
+            <a href="{{ url_for('admin_salary_requests') }}" 
+               class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Requests
+            </a>
+        </div>
+
+        <!-- Request Details -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-black flex items-center">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    Request Details
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- User Info -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-black">{{ salary_request.user.username }}</h3>
+                                <p class="text-gray-600">{{ salary_request.user.email }}</p>
+                                <p class="text-gray-500 text-sm">{{ salary_request.user.phone_number }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-600 text-sm">User ID</p>
+                                <p class="text-black font-bold">{{ salary_request.user.id }}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-600 text-sm">Member Since</p>
+                                <p class="text-black font-bold">{{ salary_request.user.created_at.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Salary Plan Info -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-{{ salary_plans[salary_request.plan_id].color }}-500 to-{{ salary_plans[salary_request.plan_id].color }}-600 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xl font-bold">{{ salary_request.plan_id }}</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-black">{{ salary_plans[salary_request.plan_id].name }}</h3>
+                                <p class="text-gray-600">${{ salary_plans[salary_request.plan_id].monthly_salary }}/month</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-600 text-sm">Required Referrals</p>
+                                <p class="text-black font-bold">{{ salary_plans[salary_request.plan_id].required_referrals }}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-600 text-sm">Required Balance</p>
+                                <p class="text-black font-bold">${{ salary_plans[salary_request.plan_id].required_balance }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-black flex items-center">
+                    <i class="fas fa-wallet text-green-500 mr-2"></i>
+                    Payment Details
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-green-800 font-bold text-lg mb-2">Salary Amount</p>
+                        <p class="text-green-600 text-3xl font-bold">${{ salary_request.amount }}</p>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-blue-800 font-bold text-lg mb-2">Wallet Address</p>
+                        <p class="text-blue-600 font-mono text-sm break-all">{{ salary_request.wallet_address }}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-600 text-sm">Request Date</p>
+                        <p class="text-black font-bold">{{ salary_request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-600 text-sm">Current Status</p>
+                        <span class="bg-{{ 'orange' if salary_request.status == 'pending' else 'green' if salary_request.status == 'approved' else 'red' }}-100 text-{{ 'orange' if salary_request.status == 'pending' else 'green' if salary_request.status == 'approved' else 'red' }}-800 px-3 py-1 rounded-full text-xs font-medium">
+                            {{ salary_request.status.upper() }}
+                        </span>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-600 text-sm">Request ID</p>
+                        <p class="text-black font-bold">#{{ salary_request.id }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Form -->
+        {% if salary_request.status == 'pending' %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-black flex items-center">
+                    <i class="fas fa-cog text-purple-500 mr-2"></i>
+                    Process Request
+                </h2>
+            </div>
+            
+            <form method="POST" class="p-6">
+                {{ form.hidden_tag() }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-black text-sm font-medium mb-2">
+                            {{ form.status.label }}
+                        </label>
+                        {{ form.status(class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500") }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-black text-sm font-medium mb-2">
+                            {{ form.transaction_hash.label }}
+                        </label>
+                        {{ form.transaction_hash(class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500", placeholder="Enter transaction hash if approved") }}
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <label class="block text-black text-sm font-medium mb-2">
+                        {{ form.admin_notes.label }}
+                    </label>
+                    {{ form.admin_notes(class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500", rows="3", placeholder="Add notes about the processing decision") }}
+                </div>
+                
+                <div class="flex justify-end space-x-4 mt-6">
+                    <a href="{{ url_for('admin_salary_requests') }}" 
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg">
+                        Cancel
+                    </a>
+                    {{ form.submit(class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg") }}
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <!-- Already Processed -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-black flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    Already Processed
+                </h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-gray-600 text-sm">Processed Date</p>
+                            <p class="text-black font-bold">{{ salary_request.processed_at.strftime('%Y-%m-%d %H:%M') if salary_request.processed_at else 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Transaction Hash</p>
+                            <p class="text-black font-mono text-sm">{{ salary_request.transaction_hash if salary_request.transaction_hash else 'N/A' }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if salary_request.admin_notes %}
+                    <div class="mt-4">
+                        <p class="text-gray-600 text-sm">Admin Notes</p>
+                        <p class="text-black">{{ salary_request.admin_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

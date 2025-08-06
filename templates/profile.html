@@ -1,0 +1,878 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Profile</h1>
+            <p class="text-gray-400">Account settings</p>
+        </div>
+        <a href="{{ url_for('logout') }}" class="p-2 bg-red-600 rounded-full" onclick="showLoading('Signing out...')">
+            <i class="fas fa-sign-out-alt text-white"></i>
+        </a>
+    </header>
+
+    <!-- Profile Card -->
+    <div class="profile-card glass-card p-6 rounded-2xl mb-6">
+        <div class="text-center">
+            <!-- Profile Picture -->
+            <div class="relative mx-auto mb-4">
+                {% if current_user.profile_picture.startswith('uploads/') %}
+                    <img src="{{ url_for('static', filename=current_user.profile_picture) }}" 
+                         alt="Profile Picture" 
+                         class="w-20 h-20 rounded-full object-cover border-4 border-purple-500">
+                {% else %}
+                    <img src="{{ url_for('static', filename='avatars/' + current_user.profile_picture) }}" 
+                         alt="Profile Picture" 
+                         class="w-20 h-20 rounded-full object-cover border-4 border-purple-500">
+                {% endif %}
+
+
+
+                <!-- Edit Profile Picture Button -->
+                <button onclick="toggleAvatarSelection()" 
+                        class="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-500 hover:bg-purple-600 rounded-full flex items-center justify-center transition-colors">
+                    <i class="fas fa-edit text-white text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Avatar Selection Modal -->
+            <div id="avatarModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                <div class="bg-white rounded-2xl p-6 m-4 max-w-sm w-full relative">
+                    <!-- Close Button -->
+                    <button onclick="toggleAvatarSelection()" class="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors">
+                        <i class="fas fa-times text-gray-600"></i>
+                    </button>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 text-center pr-8">Choose Avatar</h3>
+
+                    <!-- Default Avatars -->
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        {% for avatar in default_avatars %}
+                        <div class="text-center">
+                            <img src="{{ url_for('static', filename='avatars/' + avatar) }}" 
+                                 alt="Avatar" 
+                                 class="w-16 h-16 rounded-full mx-auto cursor-pointer hover:scale-110 transition-transform {{ 'border-4 border-purple-500' if current_user.profile_picture == avatar else 'border-2 border-gray-300' }}"
+                                 onclick="setAvatar('{{ avatar }}')">
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Upload Custom Photo -->
+                    <div class="border-t pt-4">
+                        <p class="text-sm text-gray-600 mb-2">Or upload custom photo:</p>
+                        <form method="POST" enctype="multipart/form-data" class="space-y-2" id="photoUploadForm" onsubmit="showLoading('Uploading photo...')">
+                            {{ form.hidden_tag() }}
+                            {{ form.profile_picture(class="w-full text-sm text-gray-600 border border-gray-300 rounded-lg p-2", id="photoInput", onchange="showUploadButton()") }}
+                            <div class="flex space-x-2">
+                                <button type="submit" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium" id="uploadBtn" style="display: none;">
+                                    <i class="fas fa-upload mr-2"></i>Upload Photo
+                                </button>
+                                <button type="button" onclick="toggleAvatarSelection()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg text-sm">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center space-x-2">
+                <h2 class="text-xl font-bold text-black">{{ current_user.username }}</h2>
+                <!-- Blue Tick ONLY for ACTUAL Salary Eligible Users (NOT 2+ referrals) -->
+                {% if is_salary_eligible and current_salary_plan %}
+                <div class="w-7 h-7 flex items-center justify-center blue-tick-container" title="Salary Eligible - {{ current_salary_plan.name }}">
+                    <svg class="w-7 h-7 text-blue-500 drop-shadow-lg animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.966 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Salary Eligibility Status -->
+            <div class="salary-status-container">
+                {% if is_salary_eligible and current_salary_plan %}
+                <div class="mt-2 px-3 py-1 bg-blue-100 border border-blue-300 rounded-full">
+                    <p class="text-blue-800 text-xs font-medium text-center">
+                        ✓ {{ current_salary_plan.name }} Eligible - ${{ current_salary_plan.monthly_salary }}/month
+                    </p>
+                </div>
+                {% else %}
+                <div class="mt-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-full">
+                    <p class="text-gray-600 text-xs text-center">
+                        Need {{ 7 - qualified_referrals if qualified_referrals < 7 else 0 }} more qualified referrals for salary eligibility
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            <p class="text-gray-400">{{ current_user.email }}</p>
+
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="stat-card glass-card p-4 rounded-xl">
+            <div class="text-center">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-users text-black"></i>
+                </div>
+                <p class="text-gray-600 text-sm">Active Referrals</p>
+                <p class="text-black font-bold text-xl qualified-referrals-count">{{ qualified_referrals }}/7</p>
+                <p class="text-xs text-gray-500">Real-time 100+ USDT balance</p>
+                <div class="mt-2">
+                    <button onclick="refreshReferralData()" class="text-blue-500 text-xs hover:text-blue-700">
+                        <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card glass-card p-4 rounded-xl">
+            <div class="text-center">
+                <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-wallet text-black"></i>
+                </div>
+                <p class="text-gray-600 text-sm">Total Balance</p>
+                <p class="text-black font-bold text-xl total-balance-display">${{ "%.0f"|format(current_balance) }}</p>
+                <p class="text-xs text-gray-500">Wallet + Stakes</p>
+                <div class="mt-2">
+                    <button onclick="refreshBalanceData()" class="text-green-500 text-xs hover:text-green-700">
+                        <i class="fas fa-sync-alt" id="balanceRefreshIcon"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Salary Eligibility Progress -->
+    {% if not is_salary_eligible %}
+    <div class="glass-card p-4 rounded-xl mb-6">
+        <h3 class="text-lg font-bold text-black mb-3 flex items-center">
+            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+            Salary Eligibility Progress
+        </h3>
+
+        <!-- Referrals Progress -->
+        <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-700">Active Referrals (Real-time)</span>
+                <span class="text-sm font-medium text-gray-800">{{ qualified_referrals }}/7</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                     style="width: {% if qualified_referrals >= 7 %}100{% else %}{{ (qualified_referrals / 7) * 100 }}{% endif %}%"></div>
+            </div>
+        </div>
+
+        <!-- Balance Progress -->
+        <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-700">Total Balance</span>
+                <span class="text-sm font-medium text-gray-800">${{ "%.0f"|format(current_balance) }}/350</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                     style="width: {% if current_balance >= 350 %}100{% else %}{{ (current_balance / 350) * 100 }}{% endif %}%"></div>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p class="text-yellow-800 text-sm">
+                <i class="fas fa-info-circle mr-1"></i>
+                Complete both requirements to earn monthly salary and get blue tick verification!
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+
+                <div class="grid grid-cols-1 gap-4 mb-6">
+                    <div class="glass-card p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-users text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-black">My Referrals</h3>
+                                    <p class="text-gray-600 text-sm">Build your network</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-3xl font-bold text-purple-600 qualified-referrals-main">{{ qualified_referrals }}</p>
+                                <p class="text-gray-600 text-sm">Active referrals</p>
+                                <p class="text-gray-500 text-xs total-referrals-display">{{ total_referrals }} total referred</p>
+                                <div class="mt-2">
+                                    <button onclick="showReferralDetails()" class="text-purple-600 text-xs hover:text-purple-800">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Real-time Status Indicator -->
+                        <div class="flex items-center justify-center mt-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span class="text-xs text-gray-600">Real-time data</span>
+                                <span class="text-xs text-gray-500" id="lastUpdated">Updated just now</span>
+                            </div>
+                        </div>
+    </div>
+
+    <div class="bg-gradient-to-r from-sky-400 to-cyan-300 p-6 rounded-xl text-white">
+                            <h3 class="text-lg font-bold mb-4">📢 Your Referral Link</h3>
+                            <div class="bg-white/20 p-4 rounded-lg">
+                                <p class="text-sm mb-2">Share this link to earn commissions:</p>
+                                <div class="flex items-center justify-between bg-white/10 p-3 rounded-lg">
+                                    <input type="text" 
+                                           value="{{ url_for('register', referral_code=current_user.referral_code, _external=True) }}" 
+                                           id="referralLink" 
+                                           readonly 
+                                           class="bg-transparent text-white placeholder-white/70 w-full mr-2 text-sm">
+                                    <button onclick="copyReferralLink()" 
+                                            class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg text-black font-semibold text-sm">
+                                        📋 Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Automatic Deposit Commission System -->
+                            <div class="mt-4 bg-white/10 p-4 rounded-lg border border-white/20">
+                                <h4 class="text-md font-bold mb-3 flex items-center">
+                                    💰 Automatic Commission System
+                                </h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between items-center">
+                                        <span>$50 - $199.99 deposit:</span>
+                                        <span class="font-bold text-green-300">$7 USDT</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span>$200 - $299.99 deposit:</span>
+                                        <span class="font-bold text-green-300">$15 USDT</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span>$300+ deposit:</span>
+                                        <span class="font-bold text-green-300">$26 USDT</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-white/20">
+                                    <p class="text-xs text-white/80">
+                                        ✨ <strong>Automatic:</strong> Commission awarded instantly when your referral makes their first deposit of $50+ USDT
+                                    </p>
+                                    <p class="text-xs text-white/80 mt-1">
+                                        🔒 <strong>One-time only:</strong> Each referral generates commission only once
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+    <!-- History Buttons -->
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold text-white mb-4">Transaction History</h3>
+        <div class="space-y-3">
+            <button onclick="showHistory('deposits')" class="w-full glass-card p-4 rounded-xl hover:scale-105 transition-transform">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-arrow-down text-white"></i>
+                        </div>
+                        <span class="text-white font-medium">Deposit History</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <button onclick="showHistory('withdrawals')" class="w-full glass-card p-4 rounded-xl hover:scale-105 transition-transform">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-arrow-up text-white"></i>
+                        </div>
+                        <span class="text-white font-medium">Withdrawal History</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <button onclick="showHistory('stakes')" class="w-full glass-card p-4 rounded-xl hover:scale-105 transition-transform">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-coins text-white"></i>
+                        </div>
+                        <span class="text-white font-medium">Stake History</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+        </div>
+    </div>
+
+
+
+    <!-- Other Options -->
+    <div class="space-y-3 mb-6">
+        <a href="{{ url_for('salary_dashboard') }}" class="w-full glass-card p-4 rounded-xl hover:scale-105 transition-transform block">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-dollar-sign text-white"></i>
+                    </div>
+                    <span class="text-white font-medium">Salary Dashboard</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </div>
+        </a>
+
+        <button onclick="showTerms()" class="w-full glass-card p-4 rounded-xl hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-file-contract text-white"></i>
+                    </div>
+                    <span class="text-white font-medium">Terms & Conditions</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </div>
+        </button>
+
+        <a href="{{ url_for('logout') }}" class="w-full glass-card p-4 rounded-xl hover:scale-105 transition-transform block">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-sign-out-alt text-white"></i>
+                    </div>
+                    <span class="text-white font-medium">Logout</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Account Info -->
+    <div class="glass-card p-4 rounded-xl">
+        <h3 class="text-lg font-semibold text-white mb-3">Account Information</h3>
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-400">Member Since:</span>
+                <span class="text-white">{{ current_user.created_at.strftime('%B %Y') }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-400">Account Status:</span>
+                <span class="text-green-400">Active</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-400">User ID:</span>
+                <span class="text-white font-mono">{{ current_user.id }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if is_salary_eligible %}
+        <div class="alert alert-success">
+            <i class="fas fa-robot mr-2"></i>
+            <strong>Automatic Salary Eligible!</strong>
+            <br>Plan: <strong>{{ current_salary_plan.name }}</strong>
+            <br>Monthly Salary: <strong>${{ current_salary_plan.monthly_salary }}</strong>
+            <br><small class="text-muted">Automatically processed on 1st of each month</small>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Automatic Salary System</strong>
+            <br>Your salary will be automatically processed when you meet the requirements
+            <br><small class="text-muted">No manual request needed</small>
+        </div>
+    {% endif %}
+</div>
+
+
+
+<!-- Terms Modal -->
+<div id="termsModal" class="modal hidden">
+    <div class="modal-content glass-card p-6 rounded-2xl max-w-lg mx-auto max-h-96 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Terms & Conditions</h3>
+            <button onclick="hideTerms()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4 text-gray-300 text-sm">
+            <div>
+                <h4 class="text-white font-semibold mb-2">1. Staking Terms</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Minimum staking amounts apply per coin</li>
+                    <li>Interest rates are subject to market conditions</li>
+                    <li>Early cancellation returns principal only</li>
+                    <li>Matured stakes can be withdrawn with full returns</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-white font-semibold mb-2">2. Referral Program</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>100 USDT minimum deposit required for activation</li>
+                    <li>3-level commission structure applies</li>
+                    <li>Bonuses paid immediately upon referral deposits</li>
+                    <li>No limits on referral earnings</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-white font-semibold mb-2">3. Security</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Funds secured by smart contracts</li>
+                    <li>No third-party custody involved</li>
+                    <li>Regular security audits performed</li>
+                    <li>User data encrypted and protected</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-white font-semibold mb-2">4. Withdrawals</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Zero withdrawal fees</li>
+                    <li>Manual approval process for security</li>
+                    <li>BEP20 and TRC20 networks supported</li>
+                    <li>Processing time: 24-48 hours</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+// Fix photo upload form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const photoUploadForm = document.getElementById('photoUploadForm');
+    const photoInput = document.getElementById('photoInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    if (photoUploadForm) {
+        photoUploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (photoInput.files && photoInput.files[0]) {
+                // Create FormData for proper file upload
+                const formData = new FormData();
+                formData.append('profile_picture', photoInput.files[0]);
+                formData.append('csrf_token', document.querySelector('[name="csrf_token"]').value);
+
+                uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                uploadBtn.disabled = true;
+
+                fetch('/profile', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data.includes('Profile updated successfully')) {
+                        location.reload();
+                    } else {
+                        alert('Upload failed. Please try again.');
+                        uploadBtn.innerHTML = 'Upload';
+                        uploadBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Upload failed. Please try again.');
+                    uploadBtn.innerHTML = 'Upload';
+                    uploadBtn.disabled = false;
+                });
+            } else {
+                alert('Please select a photo first.');
+            }
+        });
+    }
+});
+
+function showUploadButton() {
+    const fileInput = document.getElementById('photoInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    if (fileInput.files.length > 0) {
+        uploadBtn.style.display = 'block';
+    } else {
+        uploadBtn.style.display = 'none';
+    }
+}
+
+function showTerms() {
+    document.getElementById('termsModal').classList.remove('hidden');
+}
+
+function hideTerms() {
+    document.getElementById('termsModal').classList.add('hidden');
+}
+
+// Real-time salary eligibility check
+function checkSalaryEligibility() {
+    fetch('/api/salary-eligibility-check')
+        .then(response => response.json())
+        .then(data => {
+            const blueTick = document.querySelector('.blue-tick-container');
+            const statusContainer = document.querySelector('.salary-status-container');
+            const qualifiedReferralsElement = document.querySelector('.qualified-referrals-count');
+            const qualifiedReferralsMain = document.querySelector('.qualified-referrals-main');
+            const balanceElement = document.querySelector('.total-balance-display');
+            const totalReferralsDisplay = document.querySelector('.total-referrals-display');
+
+            // Update qualified referrals count
+            if (qualifiedReferralsElement) {
+                qualifiedReferralsElement.textContent = data.qualified_referrals + '/7';
+            }
+            if (qualifiedReferralsMain) {
+                qualifiedReferralsMain.textContent = data.qualified_referrals;
+            }
+
+            // Update total referrals if available
+            if (totalReferralsDisplay && data.total_referrals !== undefined) {
+                totalReferralsDisplay.textContent = data.total_referrals + ' total referred';
+            }
+
+            // Update balance display
+            if (balanceElement) {
+                balanceElement.textContent = '$' + Math.round(data.current_balance);
+            }
+
+            // Update last updated time
+            updateLastUpdatedTime();
+
+            // Update blue tick visibility - ONLY for ACTUAL salary eligible users (NOT 2+ referrals)
+            if (data.is_salary_eligible && data.current_salary_plan) {
+                if (blueTick) {
+                    blueTick.style.display = 'flex';
+                    blueTick.title = `Salary Eligible - ${data.current_salary_plan.name}`;
+                }
+                if (statusContainer) {
+                    statusContainer.innerHTML = `
+                        <div class="mt-2 px-3 py-1 bg-blue-100 border border-blue-300 rounded-full">
+                            <p class="text-blue-800 text-xs font-medium text-center">
+                                ✓ ${data.current_salary_plan.name} Eligible - $${data.current_salary_plan.monthly_salary}/month
+                            </p>
+                        </div>
+                    `;
+                }
+            } else {
+                // ALWAYS hide blue tick if not salary eligible (even for users with 2+ referrals)
+                if (blueTick) blueTick.style.display = 'none';
+                if (statusContainer) {
+                    const needed = Math.max(0, 7 - data.qualified_referrals);
+                    statusContainer.innerHTML = `
+                        <div class="mt-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-full">
+                            <p class="text-gray-600 text-xs text-center">
+                                Need ${needed} more active referrals (real-time 100+ USDT balance)
+                            </p>
+                        </div>
+                    `;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking salary eligibility:', error);
+        });
+}
+
+// Manual refresh functions
+function refreshReferralData() {
+    const refreshIcon = document.getElementById('refreshIcon');
+    if (refreshIcon) {
+        refreshIcon.classList.add('fa-spin');
+        setTimeout(() => refreshIcon.classList.remove('fa-spin'), 1000);
+    }
+    checkSalaryEligibility();
+}
+
+function refreshBalanceData() {
+    const refreshIcon = document.getElementById('balanceRefreshIcon');
+    if (refreshIcon) {
+        refreshIcon.classList.add('fa-spin');
+        setTimeout(() => refreshIcon.classList.remove('fa-spin'), 1000);
+    }
+    checkSalaryEligibility();
+}
+
+function updateLastUpdatedTime() {
+    const lastUpdatedElement = document.getElementById('lastUpdated');
+    if (lastUpdatedElement) {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+        lastUpdatedElement.textContent = `Updated at ${timeString}`;
+    }
+}
+
+function showReferralDetails() {
+    // Create and show referral details modal
+    const modal = document.createElement('div');
+    modal.id = 'referralDetailsModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 m-4 max-w-md w-full max-h-[80vh] overflow-y-auto relative">
+            <button onclick="closeReferralDetailsModal()" class="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Referral Details</h3>
+            <div id="referralDetailsContent">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-gray-400 text-2xl mb-4"></i>
+                    <p class="text-gray-600">Loading real-time data...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Load real-time referral details
+    fetch('/api/referral-details')
+        .then(response => response.json())
+        .then(data => {
+            displayReferralDetails(data);
+        })
+        .catch(error => {
+            console.error('Error loading referral details:', error);
+            document.getElementById('referralDetailsContent').innerHTML = '<p class="text-red-500 text-center">Error loading referral details</p>';
+        });
+}
+
+function closeReferralDetailsModal() {
+    const modal = document.getElementById('referralDetailsModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function displayReferralDetails(data) {
+    const content = document.getElementById('referralDetailsContent');
+    if (!data || !data.success) {
+        content.innerHTML = '<p class="text-red-500 text-center">Error loading data</p>';
+        return;
+    }
+
+    const details = data.details;
+    let html = `
+        <div class="space-y-4">
+            <div class="bg-blue-50 rounded-lg p-4">
+                <h4 class="font-semibold text-blue-800 mb-2">Summary</h4>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Total Referred:</span>
+                        <span class="font-medium">${details.total_referrals}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Active (100+ USDT):</span>
+                        <span class="font-medium text-green-600">${details.qualified_referrals}</span>
+                    </div>
+                </div>
+            </div>
+    `;
+
+    if (details.qualified_referrals > 0) {
+        html += `
+            <div>
+                <h4 class="font-semibold text-green-800 mb-2">Active Referrals (100+ USDT)</h4>
+                <div class="space-y-2">
+        `;
+        details.active_referrals.forEach(ref => {
+            html += `
+                <div class="bg-green-50 rounded-lg p-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium">${ref.username}</span>
+                        <span class="text-green-600 font-bold">$${Math.round(ref.balance)}</span>
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                        Wallet: $${Math.round(ref.wallet)} | Stakes: $${Math.round(ref.stakes)}
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div></div>';
+    }
+
+    if (details.inactive_referrals && details.inactive_referrals.length > 0) {
+        html += `
+            <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Inactive Referrals (&lt;100 USDT)</h4>
+                <div class="space-y-2">
+        `;
+        details.inactive_referrals.forEach(ref => {
+            html += `
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium">${ref.username}</span>
+                        <span class="text-gray-600">$${Math.round(ref.balance)}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        Needs $${Math.max(0, 100 - ref.balance)} more to be active
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div></div>';
+    }
+
+    html += `
+            <div class="text-center text-xs text-gray-500 mt-4">
+                Data updated in real-time • ${new Date().toLocaleString()}
+            </div>
+        </div>
+    `;
+
+    content.innerHTML = html;
+}
+
+// Check eligibility every 30 seconds
+setInterval(checkSalaryEligibility, 30000);
+
+// Check immediately when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(checkSalaryEligibility, 2000); // Check after 2 seconds
+});
+
+// Force refresh page on salary status change to ensure proper display
+function forcePageRefresh() {
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+function showHistory(type) {
+    // Create and show history modal
+    const modal = document.createElement('div');
+    modal.id = 'historyModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 m-4 max-w-md w-full max-h-[80vh] overflow-y-auto relative">
+            <button onclick="closeHistoryModal()" class="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+            <h3 class="text-lg font-bold text-gray-800 mb-4">${type.charAt(0).toUpperCase() + type.slice(1)} History</h3>
+            <div id="historyContent">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-gray-400 text-2xl mb-4"></i>
+                    <p class="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Load history data
+    fetch('/api/history/' + type)
+        .then(response => response.json())
+        .then(data => {
+            displayHistory(data, type);
+        })
+        .catch(error => {
+            console.error('Error loading history:', error);
+            document.getElementById('historyContent').innerHTML = '<p class="text-red-500 text-center">Error loading history</p>';
+        });
+}
+
+function closeHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function displayHistory(data, type) {
+    const content = document.getElementById('historyContent');
+    if (!data || data.length === 0) {
+        content.innerHTML = '<p class="text-gray-500 text-center">No ' + type + ' found</p>';
+        return;
+    }
+
+    let html = '<div class="space-y-3">';
+    data.forEach(item => {
+        if (type === 'deposits') {
+            html += `
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium text-gray-800">$${item.amount}</span>
+                        <span class="px-2 py-1 rounded-full text-xs ${item.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${item.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">TX: ${item.transaction_id}</p>
+                    <p class="text-xs text-gray-500">${item.date}</p>
+                </div>
+            `;
+        } else if (type === 'withdrawals') {
+            html += `
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium text-gray-800">$${item.amount}</span>
+                        <span class="px-2 py-1 rounded-full text-xs ${item.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${item.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">${item.network}</p>
+                    <p class="text-xs text-gray-500">${item.date}</p>
+                </div>
+            `;
+        } else if (type === 'stakes') {
+            html += `
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium text-gray-800">${item.coin} - $${item.amount}</span>
+                        <span class="px-2 py-1 rounded-full text-xs ${item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${item.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">${item.duration} days at ${item.rate}% daily</p>
+                    <p class="text-xs text-gray-500">Started: ${item.date}</p>
+                </div>
+            `;
+        }
+    });
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+function toggleAvatarSelection() {
+    const modal = document.getElementById('avatarModal');
+    modal.classList.toggle('hidden');
+}
+
+function setAvatar(avatarName) {
+    // Close modal first
+    toggleAvatarSelection();
+
+    // Send request to set avatar
+    fetch('/set_avatar/' + avatarName, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Show success message and reload the page
+            alert('Profile picture updated successfully!');
+            location.reload();
+        } else {
+            alert('Error setting avatar');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error setting avatar');
+    });
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('avatarModal');
+    if (event.target === modal) {
+        modal.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

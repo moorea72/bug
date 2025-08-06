@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- Header -->
+    <header class="text-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-headset text-white text-2xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Support Center</h1>
+        <p class="text-black text-sm">We're here to help you 24/7</p>
+    </header>
+
+    <!-- Quick Help Cards -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="glass-card p-4 rounded-xl text-center cursor-pointer hover:scale-105 transition-all duration-300" onclick="showFAQ()">
+            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-question-circle text-white"></i>
+            </div>
+            <p class="text-black font-semibold text-sm">FAQ</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl text-center cursor-pointer hover:scale-105 transition-all duration-300" onclick="showLiveChat()">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-comments text-white"></i>
+            </div>
+            <p class="text-black font-semibold text-sm">Live Chat</p>
+        </div>
+    </div>
+
+    <!-- Send Message Form -->
+    <div class="glass-card p-6 rounded-2xl mb-6">
+        <h2 class="text-xl font-bold mb-4">
+            <i class="fas fa-paper-plane mr-2 text-blue-500"></i>Send Message
+        </h2>
+        
+        <form method="POST" class="space-y-4">
+            {{ form.hidden_tag() }}
+            
+            <!-- Problem Type -->
+            <div>
+                <label class="block text-black text-sm font-medium mb-2">Problem Type</label>
+                {{ form.problem_type(class="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400", onchange="showProblemSuggestions(this.value)") }}
+                {% for error in form.problem_type.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <!-- Problem Suggestions -->
+            <div id="problemSuggestions" class="hidden bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-2 border-blue-200">
+                <h4 class="text-blue-600 font-semibold text-sm mb-2">💡 Quick Solutions:</h4>
+                <div id="suggestionContent" class="text-gray-700 text-sm space-y-2"></div>
+            </div>
+            
+            <!-- Subject -->
+            <div>
+                <label class="block text-black text-sm font-medium mb-2">Subject</label>
+                {{ form.subject(class="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400", placeholder="Brief title for your issue") }}
+                {% for error in form.subject.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Priority -->
+            <div>
+                <label class="block text-black text-sm font-medium mb-2">Priority</label>
+                {{ form.priority(class="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400") }}
+                {% for error in form.priority.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Message -->
+            <div>
+                <label class="block text-black text-sm font-medium mb-2">Describe your problem in detail</label>
+                {{ form.message(class="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-black focus:outline-none focus:border-blue-400 resize-vertical min-h-[100px]", placeholder="Describe your issue in detail. Include any error messages or steps you've taken.") }}
+                {% for error in form.message.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105">
+                <i class="fas fa-paper-plane mr-2"></i>Send Message
+            </button>
+        </form>
+    </div>
+
+    <!-- Response Times -->
+    <div class="glass-card p-6 rounded-2xl mb-6">
+        <h3 class="text-xl font-bold mb-4">
+            <i class="fas fa-clock mr-2 text-green-500"></i>Response Times
+        </h3>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                    <span class="text-gray-700 font-medium">Normal Priority</span>
+                </div>
+                <span class="text-green-600 font-bold">2-4 hours</span>
+            </div>
+            <div class="flex items-center justify-between bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation text-white text-sm"></i>
+                    </div>
+                    <span class="text-gray-700 font-medium">High Priority</span>
+                </div>
+                <span class="text-yellow-600 font-bold">1-2 hours</span>
+            </div>
+            <div class="flex items-center justify-between bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bolt text-white text-sm"></i>
+                    </div>
+                    <span class="text-gray-700 font-medium">Urgent Issues</span>
+                </div>
+                <span class="text-red-600 font-bold">15-30 min</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message History -->
+    {% if messages %}
+    <div class="mb-6">
+        <h2 class="text-xl font-bold mb-4">
+            <i class="fas fa-history mr-2 text-purple-500"></i>Your Messages
+        </h2>
+        <div class="space-y-4">
+            {% for message in messages %}
+            <div class="glass-card p-4 rounded-xl">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-black font-semibold">{{ message.subject }}</h3>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <span class="px-2 py-1 {% if message.status == 'open' %}bg-yellow-100 text-yellow-800{% elif message.status == 'replied' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %} rounded-full text-xs font-medium">
+                                {{ message.status.title() }}
+                            </span>
+                            <span class="px-2 py-1 {% if message.priority == 'urgent' %}bg-red-100 text-red-800{% elif message.priority == 'high' %}bg-orange-100 text-orange-800{% else %}bg-blue-100 text-blue-800{% endif %} rounded-full text-xs font-medium">
+                                {{ message.priority.title() }}
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-gray-500 text-sm">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                    <p class="text-gray-700 text-sm">{{ message.message }}</p>
+                </div>
+                
+                {% if message.admin_reply %}
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border-l-4 border-blue-400">
+                    <p class="text-blue-600 font-medium text-sm mb-1">Admin Reply:</p>
+                    <p class="text-gray-700 text-sm">{{ message.admin_reply }}</p>
+                    <p class="text-gray-500 text-xs mt-2">{{ message.replied_at.strftime('%Y-%m-%d %H:%M') if message.replied_at else '' }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- FAQ Section -->
+    <div class="glass-card p-6 rounded-2xl mb-6" id="faqSection" style="display: none;">
+        <h3 class="text-xl font-bold mb-4">
+            <i class="fas fa-question-circle mr-2 text-green-500"></i>Frequently Asked Questions
+        </h3>
+        <div class="space-y-4">
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-l-4 border-blue-400">
+                <h4 class="text-black font-semibold text-sm mb-2">How do I start staking?</h4>
+                <p class="text-gray-700 text-sm">Go to the Stake page, select your preferred cryptocurrency and staking plan, enter the amount you want to stake, and confirm your transaction.</p>
+            </div>
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-l-4 border-green-400">
+                <h4 class="text-black font-semibold text-sm mb-2">When can I withdraw my funds?</h4>
+                <p class="text-gray-700 text-sm">You can withdraw your staked funds plus earnings after the staking period completes. Check your active stakes on the Stake page for maturity dates.</p>
+            </div>
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-l-4 border-purple-400">
+                <h4 class="text-black font-semibold text-sm mb-2">How does the referral system work?</h4>
+                <p class="text-gray-700 text-sm">Share your referral link with friends. You'll earn commissions when they stake, plus a 20 USDT bonus and premium benefits after 2 successful referrals.</p>
+            </div>
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-l-4 border-yellow-400">
+                <h4 class="text-black font-semibold text-sm mb-2">Are my funds safe?</h4>
+                <p class="text-gray-700 text-sm">Yes, we use advanced security measures including cold storage, multi-signature wallets, and regular security audits to protect your funds.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showProblemSuggestions(problemType) {
+    const suggestions = {
+        'account': [
+            '• Try resetting your password if you can\'t log in',
+            '• Check if your account is activated',
+            '• Verify your email address is correct'
+        ],
+        'staking': [
+            '• Ensure you have sufficient balance to stake',
+            '• Check minimum staking requirements for each coin',
+            '• Review your active stakes in the Stake page'
+        ],
+        'deposits': [
+            '• Verify you\'re using the correct wallet address',
+            '• Check if your transaction is confirmed on the blockchain',
+            '• Make sure you meet the minimum deposit amount'
+        ],
+        'technical': [
+            '• Try refreshing the page or clearing your browser cache',
+            '• Check your internet connection',
+            '• Try using a different browser or device'
+        ],
+        'general': [
+            '• Check our FAQ section for common questions',
+            '• Review your account settings',
+            '• Contact support for personalized help'
+        ]
+    };
+    
+    const suggestionDiv = document.getElementById('problemSuggestions');
+    const contentDiv = document.getElementById('suggestionContent');
+    
+    if (suggestions[problemType]) {
+        contentDiv.innerHTML = suggestions[problemType].join('<br>');
+        suggestionDiv.classList.remove('hidden');
+    } else {
+        suggestionDiv.classList.add('hidden');
+    }
+}
+
+function showFAQ() {
+    const faqSection = document.getElementById('faqSection');
+    faqSection.style.display = faqSection.style.display === 'none' ? 'block' : 'none';
+    
+    if (faqSection.style.display === 'block') {
+        faqSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function showLiveChat() {
+    alert('Live chat feature coming soon! For now, please use the message form above.');
+}
+</script>
+{% endblock %}

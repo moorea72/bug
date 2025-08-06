@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold">Welcome back</h1>
+            <p class="text-black">{{ current_user.username }}</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{{ url_for('logout') }}" class="p-2 bg-red-600 rounded-full" onclick="showLoading('Signing out...')">
+                <i class="fas fa-sign-out-alt text-white"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Platform Notices -->
+    {% if notices %}
+    <div class="space-y-3 mb-6">
+        {% for notice in notices %}
+        <div class="notice-card glass-card p-4 rounded-xl border-l-4 {% if notice.notice_type == 'warning' %}border-orange-500{% elif notice.notice_type == 'error' %}border-red-500{% elif notice.notice_type == 'success' %}border-green-500{% else %}border-blue-500{% endif %}">
+            <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 {% if notice.notice_type == 'warning' %}bg-orange-500{% elif notice.notice_type == 'error' %}bg-red-500{% elif notice.notice_type == 'success' %}bg-green-500{% else %}bg-blue-500{% endif %} rounded-full flex items-center justify-center">
+                    <i class="fas {% if notice.notice_type == 'warning' %}fa-exclamation-triangle{% elif notice.notice_type == 'error' %}fa-times-circle{% elif notice.notice_type == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} text-white text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-black text-sm">{{ notice.title }}</h4>
+                    <p class="text-gray-600 text-xs mt-1">{{ notice.message }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Balance Cards -->
+    <div class="space-y-4 mb-6">
+        <!-- USDT Balance -->
+        <div class="balance-card glass-card p-6 rounded-2xl">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-black text-sm">USDT Balance</p>
+                    <h2 class="text-3xl font-bold text-black">${{ "%.2f"|format(user_stats.usdt_balance) }}</h2>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-dollar-sign text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-4">
+            <div class="stat-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-coins text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-black text-xs">Total Staked</p>
+                        <p class="text-black font-semibold">${{ "%.2f"|format(user_stats.total_staked) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-black text-xs">Total Earned</p>
+                        <p class="text-black font-semibold">${{ "%.2f"|format(user_stats.total_earned) }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-trophy text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-black text-xs">Account Status</p>
+                        <p class="text-black font-semibold">Active</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <a href="{{ url_for('stake') }}" class="action-card glass-card p-4 rounded-xl text-center hover:scale-105 transition-transform">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-plus text-white"></i>
+                </div>
+                <p class="text-black font-medium">Stake Now</p>
+            </a>
+
+            <a href="{{ url_for('assets') }}" class="action-card glass-card p-4 rounded-xl text-center hover:scale-105 transition-transform">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-wallet text-white"></i>
+                </div>
+                <p class="text-black font-medium">Deposit</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Why Choose Us Section -->
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4">Why Choose Us?</h3>
+        <div class="space-y-3">
+            <div class="why-choose-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-black">Secure & Trusted</h4>
+                        <p class="text-gray-600 text-sm">Bank-level security with blockchain verification</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-choose-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-black">High Returns</h4>
+                        <p class="text-gray-600 text-sm">Up to 2% daily returns on your investments</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-choose-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-black">Community Benefits</h4>
+                        <p class="text-gray-600 text-sm">Join thousands of satisfied investors</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-choose-card glass-card p-4 rounded-xl">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-black">24/7 Support</h4>
+                        <p class="text-gray-600 text-sm">Round-the-clock customer assistance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Stakes -->
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4">Recent Stakes</h3>
+        <div class="space-y-3">
+            {% for stake in recent_stakes %}
+            <div class="stake-item glass-card p-4 rounded-xl">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        {% if stake.coin.logo_url %}
+                            <img src="{{ stake.coin.logo_url }}" alt="{{ stake.coin.symbol }}" class="w-10 h-10 rounded-full object-cover">
+                        {% else %}
+                            <div class="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">{{ stake.coin.icon_emoji or get_crypto_icon(stake.coin.symbol) }}</span>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-black font-medium">${{ "%.2f"|format(stake.amount) }}</p>
+                            <p class="text-black text-sm">{{ stake.plan.duration_days }} days • {{ stake.plan.interest_rate }}% daily</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        {% if stake.status == 'active' %}
+                        <span class="px-2 py-1 bg-green-600 text-green-100 rounded-full text-xs">Active</span>
+                        {% elif stake.status == 'completed' %}
+                        <span class="px-2 py-1 bg-blue-600 text-blue-100 rounded-full text-xs">Completed</span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-red-600 text-red-100 rounded-full text-xs">Cancelled</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-coins text-gray-500 text-3xl mb-4"></i>
+                <p class="text-black">No stakes yet</p>
+                <a href="{{ url_for('stake') }}" class="text-purple-600 hover:text-purple-500 mt-2 inline-block">Start your first stake</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Centered Notification Popup -->
+<div id="notificationPopup" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" style="display: none;">
+    <div class="w-full max-w-md mx-4 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-hidden">
+        <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-white">Notifications</h3>
+                <button onclick="toggleNotifications()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div id="notificationContent" class="max-h-80 overflow-y-auto">
+            <div class="p-4 text-center text-gray-500">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p class="mt-2">Loading notifications...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load notifications
+        loadNotifications();
+
+        // Notification bell click
+        const notificationBell = document.getElementById('notificationBell');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        if (notificationBell && notificationDropdown) {
+            notificationBell.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    loadNotifications();
+                }
+            });
+
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', function() {
+                notificationDropdown.classList.add('hidden');
+            });
+        }
+
+        // Refresh notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+    });
+
+    function loadNotifications() {
+        fetch('/api/notifications')
+            .then(response => response.json())
+            .then(data => {
+                const notificationList = document.getElementById('notificationList');
+                const notificationCount = document.getElementById('notificationCount');
+
+                if (data.success && data.notifications) {
+                    // Update count
+                    if (data.count > 0) {
+                        notificationCount.textContent = data.count;
+                        notificationCount.classList.remove('hidden');
+                    } else {
+                        notificationCount.classList.add('hidden');
+                    }
+
+                    // Update notification list
+                    if (data.notifications.length === 0) {
+                        notificationList.innerHTML = `
+                            <div class="p-3 text-center text-gray-400">
+                                <i class="fas fa-bell-slash mr-2"></i>No notifications
+                            </div>
+                        `;
+                    } else {
+                        notificationList.innerHTML = data.notifications.map(notification => `
+                            <div class="p-3 hover:bg-gray-700 rounded">
+                                <div class="flex items-start">
+                                    <i class="${notification.icon} text-${getNotificationColor(notification.type)}-400 mr-2 mt-1"></i>
+                                    <div class="flex-1">
+                                        <p class="text-white text-sm font-medium">${notification.title}</p>
+                                        <p class="text-gray-400 text-xs">${notification.message}</p>
+                                        <span class="text-gray-500 text-xs">${notification.time_ago}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    notificationList.innerHTML = `
+                        <div class="p-3 text-center text-red-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Failed to load notifications
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notificationList').innerHTML = `
+                    <div class="p-3 text-center text-red-400">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Error loading notifications
+                    </div>
+                `;
+            });
+    }
+
+    function getNotificationColor(type) {
+        switch(type) {
+            case 'success': return 'green';
+            case 'warning': return 'yellow';
+            case 'error': return 'red';
+            default: return 'blue';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Multi-Level Referral System - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-6xl">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold gradient-heading">Multi-Level Referral System</h1>
+            <p class="text-gray-700 mt-2">3-Level Commission Structure with 100 USDT Minimum Requirement</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button onclick="validateCommissions()" class="glass-button px-4 py-2 rounded-lg text-black">
+                <i class="fas fa-sync mr-2"></i>Validate Commissions
+            </button>
+            <a href="{{ url_for('admin_dashboard') }}" class="glass-button px-4 py-2 rounded-lg text-black">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <!-- System Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="glass-card p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-blue-600 mb-2">{{ stats.total_users }}</div>
+            <div class="text-sm text-gray-600">Total Users</div>
+        </div>
+        
+        <div class="glass-card p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-green-600 mb-2">{{ stats.eligible_referrals }}</div>
+            <div class="text-sm text-gray-600">Eligible Referrals</div>
+            <div class="text-xs text-gray-500 mt-1">(100+ USDT deposited)</div>
+        </div>
+        
+        <div class="glass-card p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-purple-600 mb-2">{{ stats.users_with_referrals }}</div>
+            <div class="text-sm text-gray-600">Users with Referrals</div>
+        </div>
+        
+        <div class="glass-card p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-orange-600 mb-2">${{ "%.2f"|format(stats.total_commissions) }}</div>
+            <div class="text-sm text-gray-600">Total Commissions Paid</div>
+        </div>
+    </div>
+
+    <!-- Commission Structure -->
+    <div class="glass-card rounded-xl p-6 mb-8">
+        <h3 class="text-xl font-bold text-black mb-4">Commission Structure</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <div class="text-2xl font-bold text-green-600">{{ (stats.commission_rates.level_1 * 100)|int }}%</div>
+                <div class="text-sm text-gray-600">Level 1 Commission</div>
+                <div class="text-xs text-gray-500">Direct Referrals</div>
+            </div>
+            <div class="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="text-2xl font-bold text-blue-600">{{ (stats.commission_rates.level_2 * 100)|int }}%</div>
+                <div class="text-sm text-gray-600">Level 2 Commission</div>
+                <div class="text-xs text-gray-500">Sub-referrals</div>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div class="text-2xl font-bold text-purple-600">{{ (stats.commission_rates.level_3 * 100)|int }}%</div>
+                <div class="text-sm text-gray-600">Level 3 Commission</div>
+                <div class="text-xs text-gray-500">Sub-sub-referrals</div>
+            </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 class="font-semibold text-black mb-2">System Rules:</h4>
+            <ul class="text-sm text-gray-700 space-y-1">
+                <li>• Minimum deposit requirement: <strong>${{ stats.min_deposit }} USDT</strong></li>
+                <li>• Commission triggered only on deposits ≥ ${{ stats.min_deposit }} USDT</li>
+                <li>• One-time commission per referral (no recurring payments)</li>
+                <li>• Referrals must maintain ≥ ${{ stats.min_deposit }} USDT total deposits to remain active</li>
+                <li>• Anti-farming protection: Commission awarded only once per referral relationship</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Top Referrers -->
+    <div class="glass-card rounded-xl p-6 mb-8">
+        <h3 class="text-xl font-bold text-black mb-6">Top Referrers</h3>
+        {% if top_referrers %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 px-4 font-semibold text-black">User</th>
+                        <th class="text-left py-3 px-4 font-semibold text-black">Active Referrals</th>
+                        <th class="text-left py-3 px-4 font-semibold text-black">Total Referrals</th>
+                        <th class="text-left py-3 px-4 font-semibold text-black">Total Bonus</th>
+                        <th class="text-left py-3 px-4 font-semibold text-black">User Balance</th>
+                        <th class="text-left py-3 px-4 font-semibold text-black">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for referrer in top_referrers %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-black">{{ referrer.user.username }}</div>
+                            <div class="text-sm text-gray-600">{{ referrer.user.email }}</div>
+                            <div class="text-xs text-gray-500">Code: {{ referrer.user.referral_code }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                {{ referrer.active_referrals }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-gray-700">{{ referrer.total_referrals }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-medium text-green-600">${{ "%.2f"|format(referrer.total_bonus) }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-gray-700">${{ "%.2f"|format(referrer.user.usdt_balance) }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="viewReferralTree({{ referrer.user.id }})" 
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-sitemap"></i> View Tree
+                                </button>
+                                <button onclick="viewUserStats({{ referrer.user.id }})" 
+                                        class="text-green-600 hover:text-green-800 text-sm">
+                                    <i class="fas fa-chart-line"></i> Stats
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-users text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-black mb-2">No Active Referrers</h3>
+            <p class="text-gray-600">No users have active referrals with qualifying deposits yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- System Actions -->
+    <div class="glass-card rounded-xl p-6">
+        <h3 class="text-xl font-bold text-black mb-4">System Management</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button onclick="validateCommissions()" 
+                    class="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-sync text-xl mb-2 block"></i>
+                <div class="font-semibold">Validate Commissions</div>
+                <div class="text-sm opacity-80">Recalculate all referral commissions</div>
+            </button>
+            
+            <button onclick="exportReferralData()" 
+                    class="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                <i class="fas fa-download text-xl mb-2 block"></i>
+                <div class="font-semibold">Export Data</div>
+                <div class="text-sm opacity-80">Download referral statistics</div>
+            </button>
+            
+            <button onclick="generateReport()" 
+                    class="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+                <i class="fas fa-chart-bar text-xl mb-2 block"></i>
+                <div class="font-semibold">Generate Report</div>
+                <div class="text-sm opacity-80">Detailed analytics report</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Referral Tree -->
+<div id="referralTreeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Referral Tree</h3>
+                <button onclick="closeModal('referralTreeModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="referralTreeContent">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                    <div>Loading referral tree...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for User Stats -->
+<div id="userStatsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">User Statistics</h3>
+                <button onclick="closeModal('userStatsModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="userStatsContent">
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                    <div>Loading user statistics...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function validateCommissions() {
+    if (!confirm('This will recalculate all referral commissions. Continue?')) return;
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validating...';
+    button.disabled = true;
+    
+    fetch('/api/referral/validate-commission', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Commission validation completed! Total recalculated: $${data.total_recalculated || 0}`);
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error occurred');
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+}
+
+function viewReferralTree(userId) {
+    document.getElementById('referralTreeModal').classList.remove('hidden');
+    
+    fetch(`/api/referral/tree/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayReferralTree(data.tree);
+            } else {
+                document.getElementById('referralTreeContent').innerHTML = 
+                    '<div class="text-center text-red-600">Error loading referral tree</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('referralTreeContent').innerHTML = 
+                '<div class="text-center text-red-600">Network error occurred</div>';
+        });
+}
+
+function viewUserStats(userId) {
+    document.getElementById('userStatsModal').classList.remove('hidden');
+    
+    fetch(`/api/referral/stats/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayUserStats(data.stats);
+            } else {
+                document.getElementById('userStatsContent').innerHTML = 
+                    '<div class="text-center text-red-600">Error loading user statistics</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('userStatsContent').innerHTML = 
+                '<div class="text-center text-red-600">Network error occurred</div>';
+        });
+}
+
+function displayReferralTree(tree) {
+    let html = '';
+    if (tree.length === 0) {
+        html = '<div class="text-center text-gray-600">No referrals found</div>';
+    } else {
+        tree.forEach(level1 => {
+            html += `
+                <div class="border border-gray-200 rounded-lg p-3 mb-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">L1</span>
+                            <div>
+                                <div class="font-medium">${level1.user.username}</div>
+                                <div class="text-sm text-gray-600">Balance: $${level1.user.total_deposits.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-medium text-green-600">$${level1.commission_earned.toFixed(2)}</div>
+                            <div class="text-xs text-gray-500">Commission</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('referralTreeContent').innerHTML = html;
+}
+
+function displayUserStats(stats) {
+    const html = `
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-blue-600">${stats.active_referrals}</div>
+                <div class="text-sm text-gray-600">Active Referrals</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-green-600">$${stats.referral_bonus.toFixed(2)}</div>
+                <div class="text-sm text-gray-600">Total Bonus</div>
+            </div>
+        </div>
+        <div class="text-sm text-gray-700">
+            <strong>Username:</strong> ${stats.username}<br>
+            <strong>Referral Code:</strong> ${stats.referral_code}<br>
+            <strong>Total Referrals:</strong> ${stats.total_referrals}<br>
+            <strong>Eligible Status:</strong> ${stats.is_eligible ? 'Yes' : 'No'}
+        </div>
+    `;
+    document.getElementById('userStatsContent').innerHTML = html;
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+function exportReferralData() {
+    alert('Export functionality will be implemented soon');
+}
+
+function generateReport() {
+    alert('Report generation functionality will be implemented soon');
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('bg-black') && event.target.classList.contains('bg-opacity-50')) {
+        event.target.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,339 @@
+
+<!-- Loading Overlay -->
+<div id="adminLoadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-8 flex flex-col items-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+        <p class="text-gray-700 font-medium">Processing salary request...</p>
+    </div>
+</div>
+
+<!-- Quick Loading Animation for Buttons -->
+<style>
+.quick-loading {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+
+{% extends "admin/base.html" %}
+
+{% block title %}Salary Requests - Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 p-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-black">Salary Requests</h1>
+                <p class="text-gray-600">Manage salary withdrawal requests</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <div class="text-sm text-gray-600">Pending Requests</div>
+                    <div class="text-2xl font-bold text-orange-500">{{ pending_requests|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-black flex items-center">
+                    <i class="fas fa-clock text-orange-500 mr-2"></i>
+                    Pending Salary Requests
+                </h2>
+            </div>
+
+            {% if pending_requests %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-black font-medium">User</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Plan</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Amount</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Wallet</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Requested</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Status</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in pending_requests %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-black font-medium">{{ request.user.username }}</p>
+                                        <p class="text-gray-500 text-xs">{{ request.user.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gradient-to-r from-{{ salary_plans[request.plan_id].color }}-500 to-{{ salary_plans[request.plan_id].color }}-600 rounded-full flex items-center justify-center mr-2">
+                                        <span class="text-white text-xs font-bold">{{ request.plan_id }}</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-black font-medium">{{ salary_plans[request.plan_id].name }}</p>
+                                        <p class="text-gray-500 text-xs">{{ salary_plans[request.plan_id].required_referrals }} refs, ${{ salary_plans[request.plan_id].required_balance }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-black font-bold text-lg">${{ request.amount }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-black font-mono text-xs">{{ request.wallet_address[:20] }}...</p>
+                                <button onclick="copyToClipboard('{{ request.wallet_address }}')" class="text-blue-500 hover:text-blue-600 text-xs mt-1">
+                                    <i class="fas fa-copy mr-1"></i>Copy Full Address
+                                </button>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-black">{{ request.created_at.strftime('%Y-%m-%d') }}</p>
+                                <p class="text-gray-500 text-xs">{{ request.created_at.strftime('%H:%M') }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="bg-yellow-500 text-white px-2 py-1 rounded text-xs">PENDING</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ url_for('admin_process_salary_request', request_id=request.id) }}" 
+                                       class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-edit mr-1"></i>Process
+                                    </a>
+                                    <button onclick="quickApprove({{ request.id }})" 
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-check mr-1"></i>Quick Approve
+                                    </button>
+                                    <button onclick="quickReject({{ request.id }})" 
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-times mr-1"></i>Reject
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+                <p class="text-gray-600">No pending salary requests</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Processed Requests -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-black flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    Recently Processed Requests
+                </h2>
+            </div>
+
+            {% if processed_requests %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-black font-medium">User</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Plan</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Amount</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Status</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Processed</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Transaction</th>
+                            <th class="px-6 py-3 text-left text-black font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in processed_requests %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-black font-medium">{{ request.user.username }}</p>
+                                        <p class="text-gray-500 text-xs">{{ request.user.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gradient-to-r from-{{ salary_plans[request.plan_id].color }}-500 to-{{ salary_plans[request.plan_id].color }}-600 rounded-full flex items-center justify-center mr-2">
+                                        <span class="text-white text-xs font-bold">{{ request.plan_id }}</span>
+                                    </div>
+                                    <span class="text-black">{{ salary_plans[request.plan_id].name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-black font-bold">${{ request.amount }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if request.status == 'approved' %}
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                                    APPROVED
+                                </span>
+                                {% else %}
+                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">
+                                    REJECTED
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-black">{{ request.processed_at.strftime('%Y-%m-%d') }}</p>
+                                <p class="text-gray-500 text-xs">{{ request.processed_at.strftime('%H:%M') }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if request.transaction_hash %}
+                                <p class="text-black font-mono text-xs">{{ request.transaction_hash[:10] }}...</p>
+                                {% else %}
+                                <span class="text-gray-500 text-xs">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="{{ url_for('admin_process_salary_request', request_id=request.id) }}" 
+                                   class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-xs">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <i class="fas fa-history text-gray-400 text-4xl mb-4"></i>
+                <p class="text-gray-600">No processed requests yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+// Hide loading overlay when page is ready
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        const overlay = document.getElementById('adminLoadingOverlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
+    }, 300);
+});
+
+// Quick approve function with loading
+function quickApprove(requestId) {
+    if (!confirm('Are you sure you want to approve this salary request?')) return;
+
+    const button = document.querySelector(`button[onclick="quickApprove(${requestId})"]`);
+    button.innerHTML = '<div class="quick-loading mr-1"></div>Approving...';
+    button.disabled = true;
+
+    // Show loading overlay
+    document.getElementById('adminLoadingOverlay').classList.remove('hidden');
+
+    fetch(`/admin/salary-requests/${requestId}/quick-approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            transaction_hash: prompt('Enter transaction hash:') || 'AUTO_APPROVED'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-check mr-1"></i>Quick Approve';
+        }
+    })
+    .catch(error => {
+        alert('Error processing request');
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-check mr-1"></i>Quick Approve';
+    })
+    .finally(() => {
+        document.getElementById('adminLoadingOverlay').classList.add('hidden');
+    });
+}
+
+// Quick reject function with loading
+function quickReject(requestId) {
+    if (!confirm('Are you sure you want to reject this salary request?')) return;
+
+    const button = document.querySelector(`button[onclick="quickReject(${requestId})"]`);
+    button.innerHTML = '<div class="quick-loading mr-1"></div>Rejecting...';
+    button.disabled = true;
+
+    // Show loading overlay
+    document.getElementById('adminLoadingOverlay').classList.remove('hidden');
+
+    fetch(`/admin/salary-requests/${requestId}/quick-reject`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-times mr-1"></i>Reject';
+        }
+    })
+    .catch(error => {
+        alert('Error processing request');
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-times mr-1"></i>Reject';
+    })
+    .finally(() => {
+        document.getElementById('adminLoadingOverlay').classList.add('hidden');
+    });
+}
+
+// Copy wallet address function
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show temporary success message
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+        button.classList.add('text-green-600');
+
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('text-green-600');
+        }, 2000);
+    });
+}
+
+// Performance tracking
+console.log(`Admin salary requests page load time: ${performance.now().toFixed(1)}ms`);
+</script>
+{% endblock %}

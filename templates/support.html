@@ -1,0 +1,284 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-headset text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-black mb-2">Support Center</h1>
+            <p class="text-gray-600">Get help from our admin team - Real human support!</p>
+        </div>
+
+        <!-- Support Chat Button -->
+        <div class="flex justify-center mb-8">
+            <button onclick="toggleSupportPopup()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-3">
+                <i class="fas fa-comments text-xl"></i>
+                <span class="text-lg font-semibold">Chat with Admin</span>
+            </button>
+        </div>
+
+        <!-- Recent Support Messages -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-black mb-4">Recent Conversations</h3>
+            <div id="recentMessages" class="space-y-4">
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-comments text-4xl mb-4"></i>
+                    <p>No recent messages. Start a conversation with admin above!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Support Chat Popup -->
+<div id="supportPopup" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md h-[500px] flex flex-col">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-user-shield text-xl"></i>
+                <div>
+                    <h3 class="font-semibold">Admin Support</h3>
+                    <p class="text-sm opacity-80">Real human assistance</p>
+                </div>
+            </div>
+            <button onclick="toggleSupportPopup()" class="text-white hover:text-gray-200">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+            <div class="flex items-start space-x-3 mb-4">
+                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-shield text-white text-sm"></i>
+                </div>
+                <div class="bg-white rounded-lg p-3 max-w-xs shadow-sm">
+                    <p class="text-black text-sm">Hello! I'm here to help you. Please tell me about your issue and an admin will respond to you shortly.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex space-x-2">
+                <input type="text" id="messageInput" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-black focus:outline-none focus:border-blue-500" placeholder="Type your message to admin..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 gap-2 mt-3">
+                <button onclick="quickMessage('balance')" class="bg-gray-100 hover:bg-gray-200 text-black px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-wallet mr-1"></i> Balance Issue
+                </button>
+                <button onclick="quickMessage('deposit')" class="bg-gray-100 hover:bg-gray-200 text-black px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-arrow-down mr-1"></i> Deposit Help
+                </button>
+                <button onclick="quickMessage('withdrawal')" class="bg-gray-100 hover:bg-gray-200 text-black px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-arrow-up mr-1"></i> Withdrawal Help
+                </button>
+                <button onclick="quickMessage('stake')" class="bg-gray-100 hover:bg-gray-200 text-black px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-coins mr-1"></i> Staking Help
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let supportPopupOpen = false;
+let messagePollingInterval = null;
+
+function toggleSupportPopup() {
+    const popup = document.getElementById('supportPopup');
+    supportPopupOpen = !supportPopupOpen;
+    
+    if (supportPopupOpen) {
+        popup.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('messageInput').focus();
+        
+        // Load existing messages
+        loadMessages();
+        
+        // Start polling for new messages every 3 seconds
+        messagePollingInterval = setInterval(loadMessages, 3000);
+    } else {
+        popup.classList.add('hidden');
+        document.body.style.overflow = '';
+        
+        // Stop polling
+        if (messagePollingInterval) {
+            clearInterval(messagePollingInterval);
+            messagePollingInterval = null;
+        }
+    }
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        // Add user message to chat immediately
+        addMessageToChat('user', message);
+        input.value = '';
+        
+        // Send to admin via API
+        fetch('/api/support/send-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Message sent successfully - admin will reply
+                console.log('Message sent to admin successfully');
+                addMessageToChat('system', 'Message sent to admin. You will receive a reply shortly.');
+            } else {
+                addMessageToChat('system', 'Error: ' + (data.error || 'Failed to send message'));
+            }
+        })
+        .catch(error => {
+            console.error('Network Error:', error);
+            addMessageToChat('system', 'Network error: ' + error.message + '. Please check your connection and try again.');
+        });
+    }
+}
+
+function quickMessage(type) {
+    const messages = {
+        'balance': 'I have an issue with my account balance. Can you please help?',
+        'deposit': 'I need help with making a deposit. Can you assist me?',
+        'withdrawal': 'I need help with withdrawing my funds. Can you help?',
+        'stake': 'I have questions about staking. Can you explain how it works?'
+    };
+    
+    if (messages[type]) {
+        document.getElementById('messageInput').value = messages[type];
+        sendMessage();
+    }
+}
+
+function loadMessages() {
+    fetch('/api/support/get-messages')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const chatMessages = document.getElementById('chatMessages');
+                
+                // Clear existing messages except welcome message
+                const welcomeMsg = chatMessages.children[0];
+                chatMessages.innerHTML = '';
+                if (welcomeMsg) {
+                    chatMessages.appendChild(welcomeMsg);
+                }
+                
+                // Add all messages
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        addMessageToChat(msg.sender_type, msg.message, msg.timestamp, false);
+                    });
+                }
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } else {
+                console.error('Error loading messages:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading messages:', error);
+        });
+}
+
+function addMessageToChat(sender, message, timestamp = null, scroll = true) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start space-x-3 mb-4';
+    
+    const currentTime = timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    if (sender === 'user') {
+        messageDiv.className += ' flex-row-reverse space-x-reverse';
+        messageDiv.innerHTML = `
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-white text-sm"></i>
+            </div>
+            <div class="bg-blue-500 text-white rounded-lg p-3 max-w-xs">
+                <p class="text-sm">${message}</p>
+                <small class="text-xs opacity-75">${currentTime}</small>
+            </div>
+        `;
+    } else if (sender === 'admin') {
+        messageDiv.innerHTML = `
+            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-user-shield text-white text-sm"></i>
+            </div>
+            <div class="bg-white rounded-lg p-3 max-w-xs shadow-sm border-l-4 border-red-500">
+                <div class="text-black text-sm">${message}</div>
+                <small class="text-xs text-gray-500">${currentTime} - Admin</small>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-info text-white text-sm"></i>
+            </div>
+            <div class="bg-gray-200 rounded-lg p-3 max-w-xs">
+                <div class="text-gray-700 text-sm">${message}</div>
+                <small class="text-xs text-gray-500">${currentTime}</small>
+            </div>
+        `;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    
+    if (scroll) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// Close popup when clicking outside
+document.getElementById('supportPopup').addEventListener('click', function(e) {
+    if (e.target === this) {
+        toggleSupportPopup();
+    }
+});
+
+// Clean up polling when page unloads
+window.addEventListener('beforeunload', function() {
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+    }
+});
+</script>
+{% endblock %}
+

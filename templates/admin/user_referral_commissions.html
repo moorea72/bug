@@ -1,0 +1,77 @@
+
+{% extends "admin/base.html" %}
+
+{% block title %}{{ user.username }} - Referral Commissions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user"></i> {{ user.username }} - Referral Commissions
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{{ url_for('admin_referral_commissions') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to All Commissions
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- User Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h4>User Information</h4>
+                            <p><strong>Username:</strong> {{ user.username }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Referral Code:</strong> {{ user.referral_code }}</p>
+                            <p><strong>Current Balance:</strong> ${{ "%.2f"|format(user.usdt_balance) }} USDT</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Commission Summary</h4>
+                            <p><strong>Total Commissions Earned:</strong> {{ stats.total_commissions }}</p>
+                            <p><strong>Total Amount Earned:</strong> ${{ "%.2f"|format(stats.total_amount) }} USDT</p>
+                        </div>
+                    </div>
+
+                    <!-- Commission History -->
+                    <h4>Commission History</h4>
+                    {% if stats.commissions %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Referred User</th>
+                                    <th>Deposit Amount</th>
+                                    <th>Commission Earned</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for commission in stats.commissions %}
+                                <tr>
+                                    <td>{{ commission.referred_user }}</td>
+                                    <td>
+                                        <span class="badge badge-primary">${{ "%.2f"|format(commission.deposit_amount) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">${{ "%.2f"|format(commission.commission_amount) }}</span>
+                                    </td>
+                                    <td>{{ commission.date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This user has not earned any referral commissions yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
