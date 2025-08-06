@@ -95,3 +95,7 @@ with app.app_context():
     # Make helper functions available in templates
     app.jinja_env.globals['get_crypto_icon'] = get_crypto_icon
     app.jinja_env.globals['get_crypto_gradient'] = get_crypto_gradient
+
+@app.route("/")
+def index():
+    return "🚀 Flask App Running Successfully!"
