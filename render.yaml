@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: usdt-staking-platform
+    name: stakeit
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 main:app"
@@ -23,3 +23,24 @@ databases:
   - name: staking-platform-db
     databaseName: staking_platform
     user: staking_user
+services:
+  - type: web
+    name: usdt-staking-platform
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 main:app"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MORALIS_API_KEY
+        sync: false
+      - key: BSCSCAN_API_KEY
+        sync: false
+      - key: IMGBB_API_KEY
+        value: 8f8ec31fde8a226663f6f8edef74f6da
+    healthCheckPath: /health
+    
