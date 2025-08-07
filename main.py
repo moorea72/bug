@@ -1,4 +1,5 @@
 from app import app
+from flask import jsonify, redirect, url_for
 import admin_comprehensive
 import routes
 import enhanced_routes
@@ -7,7 +8,6 @@ import admin_advanced
 import salary_routes
 import otp_routes
 from support_responses import support_responses_bp
-from flask import jsonify
 
 # Register blueprint
 app.register_blueprint(support_responses_bp)
@@ -35,3 +35,4 @@ def internal_error(error):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+    
