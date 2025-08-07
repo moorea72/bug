@@ -96,8 +96,4 @@ with app.app_context():
     app.jinja_env.globals['get_crypto_icon'] = get_crypto_icon
     app.jinja_env.globals['get_crypto_gradient'] = get_crypto_gradient
 
-from flask import render_template
 
-@app.route("/")
-def index():
-    return render_template("home.html")
